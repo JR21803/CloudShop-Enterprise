@@ -1,4 +1,4 @@
-resource "aws_api_gateway_rest_api" "files_api" {
+resource "aws_api_gateway_rest_api" "cloudshop_api" {
   name        = "CloudShopAPI"
   description = "API REST de CloudShop Enterprise"
 }
@@ -65,6 +65,15 @@ resource "aws_api_gateway_method" "get_users" {
   api_key_required = true
 }
 
+resource "aws_api_gateway_integration" "get_users" {
+  rest_api_id          = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id          = aws_api_gateway_resource.users.id
+  http_method          = aws_api_gateway_method.get_users.http_method
+  integration_http_method = "POST"
+  type                 = "AWS_PROXY"
+  uri                  = var.get_users_invoke_arn
+}
+
 resource "aws_lambda_permission" "get_users" {
 
   statement_id = "AllowExecutionGetUsers"
@@ -88,6 +97,15 @@ resource "aws_api_gateway_method" "get_user" {
   api_key_required = true
 }
 
+resource "aws_api_gateway_integration" "get_user_by_id" {
+  rest_api_id          = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id          = aws_api_gateway_resource.user_id.id
+  http_method          = aws_api_gateway_method.get_user.http_method
+  integration_http_method = "POST"
+  type                 = "AWS_PROXY"
+  uri                  = var.get_user_by_id_invoke_arn
+}
+
 resource "aws_api_gateway_method" "update_user" {
   rest_api_id      = aws_api_gateway_rest_api.cloudshop_api.id
   resource_id      = aws_api_gateway_resource.user_id.id
@@ -95,6 +113,15 @@ resource "aws_api_gateway_method" "update_user" {
   authorization    = "COGNITO_USER_POOLS"
   authorizer_id    = aws_api_gateway_authorizer.cognito.id
   api_key_required = true
+}
+
+resource "aws_api_gateway_integration" "update_user" {
+  rest_api_id          = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id          = aws_api_gateway_resource.user_id.id
+  http_method          = aws_api_gateway_method.update_user.http_method
+  integration_http_method = "POST"
+  type                 = "AWS_PROXY"
+  uri                  = var.update_user_invoke_arn
 }
 
 resource "aws_lambda_permission" "update_user" {
@@ -118,6 +145,15 @@ resource "aws_api_gateway_method" "delete_user" {
   authorization    = "COGNITO_USER_POOLS"
   authorizer_id    = aws_api_gateway_authorizer.cognito.id
   api_key_required = true
+}
+
+resource "aws_api_gateway_integration" "deactivate_user" {
+  rest_api_id          = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id          = aws_api_gateway_resource.user_id.id
+  http_method          = aws_api_gateway_method.delete_user.http_method
+  integration_http_method = "POST"
+  type                 = "AWS_PROXY"
+  uri                  = var.deactivate_user_invoke_arn
 }
 
 resource "aws_lambda_permission" "delete_user" {
@@ -225,7 +261,7 @@ resource "aws_api_gateway_integration" "total_sales" {
 
 resource "aws_api_gateway_resource" "order_by_status" {
 
-  rest_api_id = aws_api_gateway_rest_api.api.id
+  rest_api_id = aws_api_gateway_rest_api.cloudshop_api.id
 
   parent_id = aws_api_gateway_resource.dashboard.id
 
@@ -235,7 +271,7 @@ resource "aws_api_gateway_resource" "order_by_status" {
 
 resource "aws_api_gateway_method" "order_by_status" {
 
-  rest_api_id = aws_api_gateway_rest_api.api.id
+  rest_api_id = aws_api_gateway_rest_api.cloudshop_api.id
 
   resource_id = aws_api_gateway_resource.order_by_status.id
 
@@ -243,7 +279,7 @@ resource "aws_api_gateway_method" "order_by_status" {
 
   authorization = "COGNITO_USER_POOLS"
 
-  authorizer_id = aws_api_gateway_authorizer.authorizer.id
+  authorizer_id = aws_api_gateway_authorizer.cognito.id
 
   api_key_required = true
 
@@ -251,7 +287,7 @@ resource "aws_api_gateway_method" "order_by_status" {
 
 resource "aws_api_gateway_integration" "order_by_status" {
 
-  rest_api_id = aws_api_gateway_rest_api.api.id
+  rest_api_id = aws_api_gateway_rest_api.cloudshop_api.id
 
   resource_id = aws_api_gateway_resource.order_by_status.id
 
@@ -266,22 +302,22 @@ resource "aws_api_gateway_integration" "order_by_status" {
 }
 
 resource "aws_api_gateway_resource" "out_of_stock" {
-  rest_api_id = aws_api_gateway_rest_api.api.id
+  rest_api_id = aws_api_gateway_rest_api.cloudshop_api.id
   parent_id   = aws_api_gateway_resource.dashboard.id
   path_part   = "outOfStock"
 }
 
 resource "aws_api_gateway_method" "out_of_stock" {
-  rest_api_id    = aws_api_gateway_rest_api.api.id
+  rest_api_id    = aws_api_gateway_rest_api.cloudshop_api.id
   resource_id    = aws_api_gateway_resource.out_of_stock.id
   http_method    = "GET"
   authorization  = "COGNITO_USER_POOLS"
-  authorizer_id  = aws_api_gateway_authorizer.authorizer.id
+  authorizer_id  = aws_api_gateway_authorizer.cognito.id
   api_key_required = true
 }
 
 resource "aws_api_gateway_integration" "out_of_stock" {
-  rest_api_id          = aws_api_gateway_rest_api.api.id
+  rest_api_id          = aws_api_gateway_rest_api.cloudshop_api.id
   resource_id          = aws_api_gateway_resource.out_of_stock.id
   http_method          = aws_api_gateway_method.out_of_stock.http_method
   integration_http_method = "POST"
@@ -290,22 +326,22 @@ resource "aws_api_gateway_integration" "out_of_stock" {
 }
 
 resource "aws_api_gateway_resource" "top_products" {
-  rest_api_id = aws_api_gateway_rest_api.api.id
+  rest_api_id = aws_api_gateway_rest_api.cloudshop_api.id
   parent_id   = aws_api_gateway_resource.dashboard.id
   path_part   = "topProducts"
 }
 
 resource "aws_api_gateway_method" "top_products" {
-  rest_api_id    = aws_api_gateway_rest_api.api.id
+  rest_api_id    = aws_api_gateway_rest_api.cloudshop_api.id
   resource_id    = aws_api_gateway_resource.top_products.id
   http_method    = "GET"
   authorization  = "COGNITO_USER_POOLS"
-  authorizer_id  = aws_api_gateway_authorizer.authorizer.id
+  authorizer_id  = aws_api_gateway_authorizer.cognito.id
   api_key_required = true
 }
 
 resource "aws_api_gateway_integration" "top_products" {
-  rest_api_id          = aws_api_gateway_rest_api.api.id
+  rest_api_id          = aws_api_gateway_rest_api.cloudshop_api.id
   resource_id          = aws_api_gateway_resource.top_products.id
   http_method          = aws_api_gateway_method.top_products.http_method
   integration_http_method = "POST"
@@ -314,22 +350,22 @@ resource "aws_api_gateway_integration" "top_products" {
 }
 
 resource "aws_api_gateway_resource" "top_customers" {
-  rest_api_id = aws_api_gateway_rest_api.api.id
+  rest_api_id = aws_api_gateway_rest_api.cloudshop_api.id
   parent_id   = aws_api_gateway_resource.dashboard.id
   path_part   = "topCustomers"
 }
 
 resource "aws_api_gateway_method" "top_customers" {
-  rest_api_id    = aws_api_gateway_rest_api.api.id
+  rest_api_id    = aws_api_gateway_rest_api.cloudshop_api.id
   resource_id    = aws_api_gateway_resource.top_customers.id
   http_method    = "GET"
   authorization  = "COGNITO_USER_POOLS"
-  authorizer_id  = aws_api_gateway_authorizer.authorizer.id
+  authorizer_id  = aws_api_gateway_authorizer.cognito.id
   api_key_required = true
 }
 
 resource "aws_api_gateway_integration" "top_customers" {
-  rest_api_id          = aws_api_gateway_rest_api.api.id
+  rest_api_id          = aws_api_gateway_rest_api.cloudshop_api.id
   resource_id          = aws_api_gateway_resource.top_customers.id
   http_method          = aws_api_gateway_method.top_customers.http_method
   integration_http_method = "POST"
@@ -338,22 +374,22 @@ resource "aws_api_gateway_integration" "top_customers" {
 }
 
 resource "aws_api_gateway_resource" "sales_by_store" {
-  rest_api_id = aws_api_gateway_rest_api.api.id
+  rest_api_id = aws_api_gateway_rest_api.cloudshop_api.id
   parent_id   = aws_api_gateway_resource.dashboard.id
   path_part   = "salesByStore"
 }
 
 resource "aws_api_gateway_method" "sales_by_store" {
-  rest_api_id    = aws_api_gateway_rest_api.api.id
+  rest_api_id    = aws_api_gateway_rest_api.cloudshop_api.id
   resource_id    = aws_api_gateway_resource.sales_by_store.id
   http_method    = "GET"
   authorization  = "COGNITO_USER_POOLS"
-  authorizer_id  = aws_api_gateway_authorizer.authorizer.id
+  authorizer_id  = aws_api_gateway_authorizer.cognito.id
   api_key_required = true
 }
 
 resource "aws_api_gateway_integration" "sales_by_store" {
-  rest_api_id          = aws_api_gateway_rest_api.api.id
+  rest_api_id          = aws_api_gateway_rest_api.cloudshop_api.id
   resource_id          = aws_api_gateway_resource.sales_by_store.id
   http_method          = aws_api_gateway_method.sales_by_store.http_method
   integration_http_method = "POST"
