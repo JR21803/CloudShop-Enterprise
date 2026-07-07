@@ -68,3 +68,10 @@ module "apigateway" {
   sales_by_store_function_name = module.lambda.sales_by_store_function_name
 
 }
+
+module "frontend" {
+  source       = "./modules/frontend"
+  project_name = var.project_name
+  environment  = var.environment
+  aws_region   = var.aws_region
+}

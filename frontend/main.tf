@@ -1,1 +1,0 @@
-//Este archivo no se usa, dentro de la carpeta va lo de npm create vite@latest frontend -- --template react
