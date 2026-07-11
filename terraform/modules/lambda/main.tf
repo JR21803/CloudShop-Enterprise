@@ -128,6 +128,135 @@ resource "aws_lambda_function" "deactivate_user" {
 
 }
 
+data "archive_file" "create_product" {
+
+  type = "zip"
+
+  source_dir = "${path.root}/lambdas/products/createProduct"
+
+  output_path = "${path.root}/lambdas/products/createProduct.zip"
+
+}
+
+resource "aws_lambda_function" "create_product" {
+
+  function_name = "createProduct"
+
+  filename = data.archive_file.create_product.output_path
+
+  source_code_hash = data.archive_file.create_product.output_base64sha256
+
+  runtime = "nodejs20.x"
+
+  handler = "index.handler"
+
+  role = var.lambda_role_arn
+
+}
+
+data "archive_file" "get_products" {
+
+  type = "zip"
+
+  source_dir = "${path.root}/lambdas/products/getProducts"
+
+  output_path = "${path.root}/lambdas/products/getProducts.zip"
+
+}
+
+data "archive_file" "get_product_by_id" {
+
+  type = "zip"
+
+  source_dir = "${path.root}/lambdas/products/getProductById"
+
+  output_path = "${path.root}/lambdas/products/getProductById.zip"
+
+}
+
+data "archive_file" "update_product" {
+
+  type = "zip"
+
+  source_dir = "${path.root}/lambdas/products/updateProduct"
+
+  output_path = "${path.root}/lambdas/products/updateProduct.zip"
+
+}
+
+data "archive_file" "deactivate_product" {
+
+  type = "zip"
+
+  source_dir = "${path.root}/lambdas/products/deleteProduct"
+
+  output_path = "${path.root}/lambdas/products/deleteProduct.zip"
+
+}
+
+resource "aws_lambda_function" "get_Products" {
+
+  function_name = "getProducts"
+
+  filename = data.archive_file.get_products.output_path
+
+  source_code_hash = data.archive_file.get_products.output_base64sha256
+
+  runtime = "nodejs20.x"
+
+  handler = "index.handler"
+
+  role = var.lambda_role_arn
+
+}
+
+resource "aws_lambda_function" "get_product_by_id" {
+
+  function_name = "getProductById"
+
+  filename = data.archive_file.get_product_by_id.output_path
+
+  source_code_hash = data.archive_file.get_product_by_id.output_base64sha256
+
+  runtime = "nodejs20.x"
+
+  handler = "index.handler"
+
+  role = var.lambda_role_arn
+
+}
+
+resource "aws_lambda_function" "update_product" {
+
+  function_name = "updateProduct"
+
+  filename = data.archive_file.update_product.output_path
+
+  source_code_hash = data.archive_file.update_product.output_base64sha256
+
+  runtime = "nodejs20.x"
+
+  handler = "index.handler"
+
+  role = var.lambda_role_arn
+
+}
+
+resource "aws_lambda_function" "delete_product" {
+
+  function_name = "deleteProduct"
+
+  filename = data.archive_file.delete_product.output_path
+
+  source_code_hash = data.archive_file.delete_product.output_base64sha256
+
+  runtime = "nodejs20.x"
+
+  handler = "index.handler"
+
+  role = var.lambda_role_arn
+
+}
 
 
 data "archive_file" "total_sales" {
