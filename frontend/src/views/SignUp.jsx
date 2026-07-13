@@ -136,7 +136,7 @@ export default function SignUp() {
               >
                 <option value="Cliente">Cliente</option>
                 <option value="Administrador">Administrador</option>
-                <option value="Gerente de Tienda">Gerente de Tienda</option>
+                <option value="Operador">Operador</option>
               </select>
             </div>
           </div>

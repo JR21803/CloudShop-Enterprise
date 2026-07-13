@@ -17,7 +17,7 @@ exports.handler = async (event) => {
 
     const existing = await docClient.send(
         new GetCommand({
-            TableName: "Product",
+            TableName: "Products",
             Key: { productId }
         })
     );
@@ -32,7 +32,7 @@ exports.handler = async (event) => {
 
     await docClient.send(
         new UpdateCommand({
-            TableName: "Product",
+            TableName: "Products",
             Key: { productId },
             UpdateExpression: "SET #s = :deleted",
             ExpressionAttributeNames: { "#s": "status" },

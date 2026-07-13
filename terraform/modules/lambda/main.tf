@@ -184,7 +184,7 @@ data "archive_file" "update_product" {
 
 }
 
-data "archive_file" "deactivate_product" {
+data "archive_file" "delete_product" {
 
   type = "zip"
 
@@ -413,4 +413,79 @@ resource "aws_lambda_function" "sales_by_store" {
 
   role = var.lambda_role_arn
 
+}
+
+data "archive_file" "create_store" {
+  type        = "zip"
+  source_dir  = "${path.root}/lambdas/stores/createStore"
+  output_path = "${path.root}/lambdas/stores/createStore.zip"
+}
+
+resource "aws_lambda_function" "create_store" {
+  function_name    = "createStore"
+  filename         = data.archive_file.create_store.output_path
+  source_code_hash = data.archive_file.create_store.output_base64sha256
+  runtime          = "nodejs20.x"
+  handler          = "index.handler"
+  role             = var.lambda_role_arn
+}
+
+data "archive_file" "get_stores" {
+  type        = "zip"
+  source_dir  = "${path.root}/lambdas/stores/getStores"
+  output_path = "${path.root}/lambdas/stores/getStores.zip"
+}
+
+resource "aws_lambda_function" "get_stores" {
+  function_name    = "getStores"
+  filename         = data.archive_file.get_stores.output_path
+  source_code_hash = data.archive_file.get_stores.output_base64sha256
+  runtime          = "nodejs20.x"
+  handler          = "index.handler"
+  role             = var.lambda_role_arn
+}
+
+data "archive_file" "get_store_by_id" {
+  type        = "zip"
+  source_dir  = "${path.root}/lambdas/stores/getStoreById"
+  output_path = "${path.root}/lambdas/stores/getStoreById.zip"
+}
+
+resource "aws_lambda_function" "get_store_by_id" {
+  function_name    = "getStoreById"
+  filename         = data.archive_file.get_store_by_id.output_path
+  source_code_hash = data.archive_file.get_store_by_id.output_base64sha256
+  runtime          = "nodejs20.x"
+  handler          = "index.handler"
+  role             = var.lambda_role_arn
+}
+
+data "archive_file" "update_store" {
+  type        = "zip"
+  source_dir  = "${path.root}/lambdas/stores/updateStore"
+  output_path = "${path.root}/lambdas/stores/updateStore.zip"
+}
+
+resource "aws_lambda_function" "update_store" {
+  function_name    = "updateStore"
+  filename         = data.archive_file.update_store.output_path
+  source_code_hash = data.archive_file.update_store.output_base64sha256
+  runtime          = "nodejs20.x"
+  handler          = "index.handler"
+  role             = var.lambda_role_arn
+}
+
+data "archive_file" "deactivate_store" {
+  type        = "zip"
+  source_dir  = "${path.root}/lambdas/stores/deactivateStore"
+  output_path = "${path.root}/lambdas/stores/deactivateStore.zip"
+}
+
+resource "aws_lambda_function" "deactivate_store" {
+  function_name    = "deactivateStore"
+  filename         = data.archive_file.deactivate_store.output_path
+  source_code_hash = data.archive_file.deactivate_store.output_base64sha256
+  runtime          = "nodejs20.x"
+  handler          = "index.handler"
+  role             = var.lambda_role_arn
 }

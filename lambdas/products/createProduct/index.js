@@ -29,14 +29,14 @@ exports.handler = async (event) => {
 
     await docClient.send(
         new PutCommand({
-            TableName: "Files",
-            Item: file
+            TableName: "Products",
+            Item: product
         })
     );
 
     return {
         statusCode: 201,
         headers: corsHeaders,
-        body: JSON.stringify(file)
+        body: JSON.stringify(product)
     };
 };

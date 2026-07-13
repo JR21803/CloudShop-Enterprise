@@ -203,7 +203,19 @@ resource "aws_api_gateway_deployment" "deployment" {
     aws_api_gateway_integration.out_of_stock,
     aws_api_gateway_integration.top_products,
     aws_api_gateway_integration.top_customers,
-    aws_api_gateway_integration.sales_by_store
+    aws_api_gateway_integration.sales_by_store,
+
+    aws_api_gateway_integration.get_products,
+    aws_api_gateway_integration.create_product,
+    aws_api_gateway_integration.get_product_by_id,
+    aws_api_gateway_integration.update_product,
+    aws_api_gateway_integration.delete_product,
+
+    aws_api_gateway_integration.get_stores,
+    aws_api_gateway_integration.create_store,
+    aws_api_gateway_integration.get_store_by_id,
+    aws_api_gateway_integration.update_store,
+    aws_api_gateway_integration.delete_store
 
   ]
 
@@ -217,6 +229,310 @@ resource "aws_api_gateway_stage" "dev" {
 
   stage_name = "dev"
 
+}
+
+
+# ==========================================
+# PRODUCTS ENDPOINTS
+# ==========================================
+
+resource "aws_api_gateway_resource" "products" {
+  rest_api_id = aws_api_gateway_rest_api.cloudshop_api.id
+  parent_id   = aws_api_gateway_rest_api.cloudshop_api.root_resource_id
+  path_part   = "products"
+}
+
+resource "aws_api_gateway_resource" "product_id" {
+  rest_api_id = aws_api_gateway_rest_api.cloudshop_api.id
+  parent_id   = aws_api_gateway_resource.products.id
+  path_part   = "{id}"
+}
+
+# GET /products
+resource "aws_api_gateway_method" "get_products" {
+  rest_api_id      = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id      = aws_api_gateway_resource.products.id
+  http_method      = "GET"
+  authorization    = "COGNITO_USER_POOLS"
+  authorizer_id    = aws_api_gateway_authorizer.cognito.id
+  api_key_required = true
+}
+
+resource "aws_api_gateway_integration" "get_products" {
+  rest_api_id             = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id             = aws_api_gateway_resource.products.id
+  http_method             = aws_api_gateway_method.get_products.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = var.get_products_invoke_arn
+}
+
+resource "aws_lambda_permission" "get_products" {
+  statement_id  = "AllowExecutionGetProducts"
+  action        = "lambda:InvokeFunction"
+  function_name = var.get_products_function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_api_gateway_rest_api.cloudshop_api.execution_arn}/*/*"
+}
+
+# POST /products
+resource "aws_api_gateway_method" "create_product" {
+  rest_api_id      = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id      = aws_api_gateway_resource.products.id
+  http_method      = "POST"
+  authorization    = "COGNITO_USER_POOLS"
+  authorizer_id    = aws_api_gateway_authorizer.cognito.id
+  api_key_required = true
+}
+
+resource "aws_api_gateway_integration" "create_product" {
+  rest_api_id             = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id             = aws_api_gateway_resource.products.id
+  http_method             = aws_api_gateway_method.create_product.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = var.create_product_invoke_arn
+}
+
+resource "aws_lambda_permission" "create_product" {
+  statement_id  = "AllowExecutionCreateProduct"
+  action        = "lambda:InvokeFunction"
+  function_name = var.create_product_function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_api_gateway_rest_api.cloudshop_api.execution_arn}/*/*"
+}
+
+# GET /products/{id}
+resource "aws_api_gateway_method" "get_product_by_id" {
+  rest_api_id      = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id      = aws_api_gateway_resource.product_id.id
+  http_method      = "GET"
+  authorization    = "COGNITO_USER_POOLS"
+  authorizer_id    = aws_api_gateway_authorizer.cognito.id
+  api_key_required = true
+}
+
+resource "aws_api_gateway_integration" "get_product_by_id" {
+  rest_api_id             = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id             = aws_api_gateway_resource.product_id.id
+  http_method             = aws_api_gateway_method.get_product_by_id.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = var.get_product_by_id_invoke_arn
+}
+
+resource "aws_lambda_permission" "get_product_by_id" {
+  statement_id  = "AllowExecutionGetProductById"
+  action        = "lambda:InvokeFunction"
+  function_name = var.get_product_by_id_function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_api_gateway_rest_api.cloudshop_api.execution_arn}/*/*"
+}
+
+# PUT /products/{id}
+resource "aws_api_gateway_method" "update_product" {
+  rest_api_id      = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id      = aws_api_gateway_resource.product_id.id
+  http_method      = "PUT"
+  authorization    = "COGNITO_USER_POOLS"
+  authorizer_id    = aws_api_gateway_authorizer.cognito.id
+  api_key_required = true
+}
+
+resource "aws_api_gateway_integration" "update_product" {
+  rest_api_id             = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id             = aws_api_gateway_resource.product_id.id
+  http_method             = aws_api_gateway_method.update_product.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = var.update_product_invoke_arn
+}
+
+resource "aws_lambda_permission" "update_product" {
+  statement_id  = "AllowExecutionUpdateProduct"
+  action        = "lambda:InvokeFunction"
+  function_name = var.update_product_function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_api_gateway_rest_api.cloudshop_api.execution_arn}/*/*"
+}
+
+# DELETE /products/{id}
+resource "aws_api_gateway_method" "delete_product" {
+  rest_api_id      = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id      = aws_api_gateway_resource.product_id.id
+  http_method      = "DELETE"
+  authorization    = "COGNITO_USER_POOLS"
+  authorizer_id    = aws_api_gateway_authorizer.cognito.id
+  api_key_required = true
+}
+
+resource "aws_api_gateway_integration" "delete_product" {
+  rest_api_id             = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id             = aws_api_gateway_resource.product_id.id
+  http_method             = aws_api_gateway_method.delete_product.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = var.delete_product_invoke_arn
+}
+
+resource "aws_lambda_permission" "delete_product" {
+  statement_id  = "AllowExecutionDeleteProduct"
+  action        = "lambda:InvokeFunction"
+  function_name = var.delete_product_function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_api_gateway_rest_api.cloudshop_api.execution_arn}/*/*"
+}
+
+
+# ==========================================
+# STORES ENDPOINTS
+# ==========================================
+
+resource "aws_api_gateway_resource" "stores" {
+  rest_api_id = aws_api_gateway_rest_api.cloudshop_api.id
+  parent_id   = aws_api_gateway_rest_api.cloudshop_api.root_resource_id
+  path_part   = "stores"
+}
+
+resource "aws_api_gateway_resource" "store_id" {
+  rest_api_id = aws_api_gateway_rest_api.cloudshop_api.id
+  parent_id   = aws_api_gateway_resource.stores.id
+  path_part   = "{id}"
+}
+
+# GET /stores
+resource "aws_api_gateway_method" "get_stores" {
+  rest_api_id      = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id      = aws_api_gateway_resource.stores.id
+  http_method      = "GET"
+  authorization    = "COGNITO_USER_POOLS"
+  authorizer_id    = aws_api_gateway_authorizer.cognito.id
+  api_key_required = true
+}
+
+resource "aws_api_gateway_integration" "get_stores" {
+  rest_api_id             = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id             = aws_api_gateway_resource.stores.id
+  http_method             = aws_api_gateway_method.get_stores.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = var.get_stores_invoke_arn
+}
+
+resource "aws_lambda_permission" "get_stores" {
+  statement_id  = "AllowExecutionGetStores"
+  action        = "lambda:InvokeFunction"
+  function_name = var.get_stores_function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_api_gateway_rest_api.cloudshop_api.execution_arn}/*/*"
+}
+
+# POST /stores
+resource "aws_api_gateway_method" "create_store" {
+  rest_api_id      = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id      = aws_api_gateway_resource.stores.id
+  http_method      = "POST"
+  authorization    = "COGNITO_USER_POOLS"
+  authorizer_id    = aws_api_gateway_authorizer.cognito.id
+  api_key_required = true
+}
+
+resource "aws_api_gateway_integration" "create_store" {
+  rest_api_id             = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id             = aws_api_gateway_resource.stores.id
+  http_method             = aws_api_gateway_method.create_store.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = var.create_store_invoke_arn
+}
+
+resource "aws_lambda_permission" "create_store" {
+  statement_id  = "AllowExecutionCreateStore"
+  action        = "lambda:InvokeFunction"
+  function_name = var.create_store_function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_api_gateway_rest_api.cloudshop_api.execution_arn}/*/*"
+}
+
+# GET /stores/{id}
+resource "aws_api_gateway_method" "get_store_by_id" {
+  rest_api_id      = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id      = aws_api_gateway_resource.store_id.id
+  http_method      = "GET"
+  authorization    = "COGNITO_USER_POOLS"
+  authorizer_id    = aws_api_gateway_authorizer.cognito.id
+  api_key_required = true
+}
+
+resource "aws_api_gateway_integration" "get_store_by_id" {
+  rest_api_id             = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id             = aws_api_gateway_resource.store_id.id
+  http_method             = aws_api_gateway_method.get_store_by_id.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = var.get_store_by_id_invoke_arn
+}
+
+resource "aws_lambda_permission" "get_store_by_id" {
+  statement_id  = "AllowExecutionGetStoreById"
+  action        = "lambda:InvokeFunction"
+  function_name = var.get_store_by_id_function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_api_gateway_rest_api.cloudshop_api.execution_arn}/*/*"
+}
+
+# PUT /stores/{id}
+resource "aws_api_gateway_method" "update_store" {
+  rest_api_id      = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id      = aws_api_gateway_resource.store_id.id
+  http_method      = "PUT"
+  authorization    = "COGNITO_USER_POOLS"
+  authorizer_id    = aws_api_gateway_authorizer.cognito.id
+  api_key_required = true
+}
+
+resource "aws_api_gateway_integration" "update_store" {
+  rest_api_id             = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id             = aws_api_gateway_resource.store_id.id
+  http_method             = aws_api_gateway_method.update_store.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = var.update_store_invoke_arn
+}
+
+resource "aws_lambda_permission" "update_store" {
+  statement_id  = "AllowExecutionUpdateStore"
+  action        = "lambda:InvokeFunction"
+  function_name = var.update_store_function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_api_gateway_rest_api.cloudshop_api.execution_arn}/*/*"
+}
+
+# DELETE /stores/{id}
+resource "aws_api_gateway_method" "delete_store" {
+  rest_api_id      = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id      = aws_api_gateway_resource.store_id.id
+  http_method      = "DELETE"
+  authorization    = "COGNITO_USER_POOLS"
+  authorizer_id    = aws_api_gateway_authorizer.cognito.id
+  api_key_required = true
+}
+
+resource "aws_api_gateway_integration" "delete_store" {
+  rest_api_id             = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id             = aws_api_gateway_resource.store_id.id
+  http_method             = aws_api_gateway_method.delete_store.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = var.deactivate_store_invoke_arn
+}
+
+resource "aws_lambda_permission" "delete_store" {
+  statement_id  = "AllowExecutionDeleteStore"
+  action        = "lambda:InvokeFunction"
+  function_name = var.deactivate_store_function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_api_gateway_rest_api.cloudshop_api.execution_arn}/*/*"
 }
 
 

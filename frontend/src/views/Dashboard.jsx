@@ -13,19 +13,30 @@ import {
   Database,
   ArrowUpRight,
   ShieldCheck,
-  User
+  User,
+  Plus,
+  Trash2,
+  ClipboardList,
+  Search,
+  AlertCircle,
+  CheckCircle,
+  XCircle,
+  PlusCircle
 } from "lucide-react";
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const [session, setSession] = useState(null);
+  const session = cognitoService.getCurrentSession();
   
-  // Estados de datos de la API
+  // Tab/Navigation state
+  const [activeTab, setActiveTab] = useState("dashboard"); // dashboard, products, stores, users, orders
+  
+  // Loading & error states
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [isMock, setIsMock] = useState(apiService.isMockMode());
-  
-  // Métricas del Dashboard
+
+  // Dashboard Stats States
   const [totalSales, setTotalSales] = useState({ totalOrders: 0, totalSales: 0 });
   const [orderByStatus, setOrderByStatus] = useState([]);
   const [outOfStock, setOutOfStock] = useState([]);
@@ -33,49 +44,77 @@ export default function Dashboard() {
   const [topCustomers, setTopCustomers] = useState([]);
   const [salesByStore, setSalesByStore] = useState([]);
 
-  // Cargar sesión del usuario
-  useEffect(() => {
-    const currentSession = cognitoService.getCurrentSession();
-    if (!currentSession) {
-      navigate("/login");
-    } else {
-      setSession(currentSession);
-    }
-  }, [navigate]);
+  // Data management states for CRUD tabs
+  const [productsList, setProductsList] = useState([]);
+  const [storesList, setStoresList] = useState([]);
+  const [usersList, setUsersList] = useState([]);
+  const [ordersList, setOrdersList] = useState([]);
 
-  // Cargar datos del dashboard
-  const fetchDashboardData = async () => {
+  // CRUD Forms States
+  const [productForm, setProductForm] = useState({ code: "", name: "", description: "", category: "", price: "", stock: "", shop: "" });
+  const [editingProductId, setEditingProductId] = useState(null);
+  const [showProductForm, setShowProductForm] = useState(false);
+
+  const [storeForm, setStoreForm] = useState({ name: "", address: "", phone: "" });
+  const [editingStoreId, setEditingStoreId] = useState(null);
+  const [showStoreForm, setShowStoreForm] = useState(false);
+
+  useEffect(() => {
+    if (!session) {
+      navigate("/login");
+      return;
+    }
+    // Operador cannot access Dashboard/Users/Stores
+    if (session.user.role === "Cliente") {
+      navigate("/storefront");
+      return;
+    }
+    loadAllData();
+  }, [activeTab]);
+
+  const loadAllData = async () => {
     setLoading(true);
     setError("");
     try {
-      const [salesData, statusData, stockData, productsData, customersData, storeData] = await Promise.all([
-        apiService.getTotalSales(),
-        apiService.getOrderByStatus(),
-        apiService.getOutOfStock(),
-        apiService.getTopProducts(),
-        apiService.getTopCustomers(),
-        apiService.getSalesByStore()
-      ]);
-
-      setTotalSales(salesData);
-      setOrderByStatus(statusData);
-      setOutOfStock(stockData);
-      setTopProducts(productsData);
-      setTopCustomers(customersData);
-      setSalesByStore(storeData);
+      if (activeTab === "dashboard") {
+        const [salesData, statusData, stockData, productsData, customersData, storeData] = await Promise.all([
+          apiService.getTotalSales(),
+          apiService.getOrderByStatus(),
+          apiService.getOutOfStock(),
+          apiService.getTopProducts(),
+          apiService.getTopCustomers(),
+          apiService.getSalesByStore()
+        ]);
+        setTotalSales(salesData);
+        setOrderByStatus(statusData);
+        setOutOfStock(stockData);
+        setTopProducts(productsData);
+        setTopCustomers(customersData);
+        setSalesByStore(storeData);
+      } else if (activeTab === "products") {
+        const [pData, sData] = await Promise.all([
+          apiService.getProducts(),
+          apiService.getStores()
+        ]);
+        setProductsList(pData);
+        setStoresList(sData);
+      } else if (activeTab === "stores") {
+        const sData = await apiService.getStores();
+        setStoresList(sData);
+      } else if (activeTab === "users") {
+        const uData = await apiService.getUsers();
+        setUsersList(uData);
+      } else if (activeTab === "orders") {
+        const oData = await apiService.getOrders();
+        setOrdersList(oData);
+      }
     } catch (err) {
       console.error(err);
-      setError(err.message || "Error al conectar con la API de AWS. El backend podría no estar totalmente desplegado.");
+      setError(err.message || "Error al cargar información de AWS API.");
     } finally {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    if (session) {
-      fetchDashboardData();
-    }
-  }, [session, isMock]);
 
   const handleLogout = () => {
     cognitoService.signOut();
@@ -85,16 +124,175 @@ export default function Dashboard() {
   const handleToggleMock = () => {
     const newVal = apiService.toggleMockMode();
     setIsMock(newVal);
+    loadAllData();
+  };
+
+  // ==========================================
+  // PRODUCTS CRUD HANDLERS
+  // ==========================================
+  const handleSaveProduct = async (e) => {
+    e.preventDefault();
+    if (!productForm.code || !productForm.name || !productForm.category || !productForm.price || !productForm.shop) {
+      alert("Por favor completa los campos obligatorios.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      if (editingProductId) {
+        await apiService.updateProduct(editingProductId, productForm);
+        alert("Producto actualizado.");
+      } else {
+        await apiService.createProduct(productForm);
+        alert("Producto creado con éxito.");
+      }
+      setProductForm({ code: "", name: "", description: "", category: "", price: "", stock: "", shop: "" });
+      setEditingProductId(null);
+      setShowProductForm(false);
+      loadAllData();
+    } catch (err) {
+      alert("Error al guardar producto: " + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEditProduct = (prod) => {
+    setProductForm({
+      code: prod.code || "",
+      name: prod.name,
+      description: prod.description || "",
+      category: prod.category,
+      price: prod.price,
+      stock: prod.stock,
+      shop: prod.shop || ""
+    });
+    setEditingProductId(prod.productId);
+    setShowProductForm(true);
+  };
+
+  const handleDeleteProduct = async (id) => {
+    if (!window.confirm("¿Seguro que deseas desactivar este producto?")) return;
+    try {
+      setLoading(true);
+      await apiService.deleteProduct(id);
+      loadAllData();
+      alert("Producto desactivado (Stock fijado en 0).");
+    } catch (err) {
+      alert("Error al desactivar producto: " + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ==========================================
+  // STORES CRUD HANDLERS
+  // ==========================================
+  const handleSaveStore = async (e) => {
+    e.preventDefault();
+    if (!storeForm.name || !storeForm.address) {
+      alert("Por favor completa los campos obligatorios.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      if (editingStoreId) {
+        await apiService.updateStore(editingStoreId, storeForm);
+        alert("Tienda actualizada.");
+      } else {
+        await apiService.createStore(storeForm);
+        alert("Tienda creada con éxito.");
+      }
+      setStoreForm({ name: "", address: "", phone: "" });
+      setEditingStoreId(null);
+      setShowStoreForm(false);
+      loadAllData();
+    } catch (err) {
+      alert("Error al guardar tienda: " + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEditStore = (store) => {
+    setStoreForm({
+      name: store.name,
+      address: store.address,
+      phone: store.phone || ""
+    });
+    setEditingStoreId(store.storeId);
+    setShowStoreForm(true);
+  };
+
+  const handleDeactivateStore = async (id) => {
+    if (!window.confirm("¿Seguro que deseas desactivar esta tienda?")) return;
+    try {
+      setLoading(true);
+      await apiService.deactivateStore(id);
+      loadAllData();
+      alert("Tienda desactivada.");
+    } catch (err) {
+      alert("Error al desactivar tienda: " + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ==========================================
+  // USERS ADMIN HANDLERS
+  // ==========================================
+  const handleChangeUserRole = async (email, newRole) => {
+    try {
+      setLoading(true);
+      await apiService.updateUser(email, { role: newRole });
+      loadAllData();
+      alert("Rol de usuario actualizado.");
+    } catch (err) {
+      alert("Error al actualizar rol: " + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeactivateUser = async (email) => {
+    if (!window.confirm("¿Seguro que deseas desactivar este usuario?")) return;
+    try {
+      setLoading(true);
+      await apiService.deactivateUser(email);
+      loadAllData();
+      alert("Usuario desactivado.");
+    } catch (err) {
+      alert("Error al desactivar usuario: " + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ==========================================
+  // ORDERS MANAGEMENT HANDLERS
+  // ==========================================
+  const handleChangeOrderStatus = async (orderId, newStatus) => {
+    try {
+      setLoading(true);
+      await apiService.updateOrderStatus(orderId, newStatus);
+      loadAllData();
+      alert("Estado de pedido actualizado.");
+    } catch (err) {
+      alert("Error al cambiar estado: " + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Helpers
+  const getRoleBadgeClass = (role) => {
+    if (role === "Administrador") return "badge-rose";
+    if (role === "Operador") return "badge-purple";
+    return "badge-cyan";
   };
 
   if (!session) return null;
-
-  // Helpers de color de roles
-  const getRoleBadgeClass = (role) => {
-    if (role === "Administrador") return "badge-rose";
-    if (role === "Gerente de Tienda") return "badge-purple";
-    return "badge-cyan";
-  };
 
   return (
     <div className="app-container">
@@ -114,21 +312,47 @@ export default function Dashboard() {
           </div>
 
           <nav style={styles.navMenu}>
-            <div style={{ ...styles.navItem, ...styles.navItemActive }}>
+            <div 
+              onClick={() => setActiveTab("dashboard")} 
+              style={{ ...styles.navItem, ...(activeTab === "dashboard" ? styles.navItemActive : {}) }}
+            >
               <TrendingUp size={20} />
               <span className="nav-label">Dashboard</span>
             </div>
-            <div style={styles.navItemDisabled}>
+
+            <div 
+              onClick={() => setActiveTab("products")} 
+              style={{ ...styles.navItem, ...(activeTab === "products" ? styles.navItemActive : {}) }}
+            >
               <ShoppingBag size={20} />
               <span className="nav-label">Productos</span>
             </div>
-            <div style={styles.navItemDisabled}>
-              <Store size={20} />
-              <span className="nav-label">Tiendas</span>
-            </div>
-            <div style={styles.navItemDisabled}>
-              <Users size={20} />
-              <span className="nav-label">Usuarios</span>
+
+            {session.user.role === "Administrador" && (
+              <>
+                <div 
+                  onClick={() => setActiveTab("stores")} 
+                  style={{ ...styles.navItem, ...(activeTab === "stores" ? styles.navItemActive : {}) }}
+                >
+                  <Store size={20} />
+                  <span className="nav-label">Tiendas</span>
+                </div>
+                <div 
+                  onClick={() => setActiveTab("users")} 
+                  style={{ ...styles.navItem, ...(activeTab === "users" ? styles.navItemActive : {}) }}
+                >
+                  <Users size={20} />
+                  <span className="nav-label">Usuarios</span>
+                </div>
+              </>
+            )}
+
+            <div 
+              onClick={() => setActiveTab("orders")} 
+              style={{ ...styles.navItem, ...(activeTab === "orders" ? styles.navItemActive : {}) }}
+            >
+              <ClipboardList size={20} />
+              <span className="nav-label">Pedidos</span>
             </div>
           </nav>
         </div>
@@ -160,12 +384,12 @@ export default function Dashboard() {
         {/* Cabecera del Dashboard */}
         <header style={styles.headerBar}>
           <div>
-            <h1>Dashboard</h1>
-            <p style={styles.headerSubtitle}>Supervisión de operaciones de CloudShop Enterprise</p>
+            <h1 style={{ textTransform: "capitalize" }}>{activeTab === "dashboard" ? "Dashboard" : activeTab}</h1>
+            <p style={styles.headerSubtitle}>Portal Administrativo de CloudShop Enterprise</p>
           </div>
 
           <div style={styles.headerActions}>
-            {/* Indicador y switch de Mock/Real API */}
+            {/* Switch de Mock/Real API */}
             <div className="glass-card" style={styles.dbToggleCard}>
               <div style={styles.dbToggleLabel}>
                 <Database size={16} style={{ color: isMock ? "#f59e0b" : "#10b981" }} />
@@ -177,7 +401,7 @@ export default function Dashboard() {
               </button>
             </div>
 
-            <button onClick={fetchDashboardData} className="btn-secondary" style={styles.reloadBtn} disabled={loading}>
+            <button onClick={loadAllData} className="btn-secondary" style={styles.reloadBtn} disabled={loading}>
               <RefreshCw className={loading ? "animate-spin" : ""} size={18} />
             </button>
           </div>
@@ -198,173 +422,460 @@ export default function Dashboard() {
 
         {loading ? (
           <div style={styles.loaderContainer}>
-            <LoaderComponent />
+            <RefreshCw className="animate-spin" size={36} style={{ color: "var(--accent-cyan)" }} />
+            <p style={{ marginTop: "12px", color: "var(--text-secondary)" }}>Procesando solicitud de CloudShop...</p>
           </div>
         ) : (
           <>
-            {/* Fila de KPI Cards */}
-            <section style={styles.kpiGrid}>
-              {/* Tarjeta de Ventas Totales */}
-              <div className="glass-card" style={styles.kpiCard}>
-                <div style={styles.kpiHeader}>
-                  <div>
-                    <div style={styles.kpiLabel}>Ventas Totales</div>
-                    <div style={styles.kpiValue}>${totalSales.totalSales.toLocaleString("es-MX", { minimumFractionDigits: 2 })}</div>
-                  </div>
-                  <div style={{ ...styles.kpiIconWrapper, backgroundColor: "var(--accent-cyan-glow)", color: "var(--accent-cyan)" }}>
-                    <TrendingUp size={24} />
-                  </div>
-                </div>
-                <div style={styles.kpiFooter}>
-                  <ArrowUpRight size={16} style={{ color: "#10b981" }} />
-                  <span style={{ color: "#10b981", fontWeight: "600" }}>+12.4%</span>
-                  <span style={styles.kpiFooterText}>este mes</span>
-                </div>
-              </div>
-
-              {/* Tarjeta de Pedidos */}
-              <div className="glass-card" style={styles.kpiCard}>
-                <div style={styles.kpiHeader}>
-                  <div>
-                    <div style={styles.kpiLabel}>Total de Pedidos</div>
-                    <div style={styles.kpiValue}>{totalSales.totalOrders.toLocaleString()}</div>
-                  </div>
-                  <div style={{ ...styles.kpiIconWrapper, backgroundColor: "var(--accent-purple-glow)", color: "var(--accent-purple)" }}>
-                    <ShoppingBag size={24} />
-                  </div>
-                </div>
-                <div style={styles.kpiFooter}>
-                  <ArrowUpRight size={16} style={{ color: "#10b981" }} />
-                  <span style={{ color: "#10b981", fontWeight: "600" }}>+8.2%</span>
-                  <span style={styles.kpiFooterText}>vs periodo anterior</span>
-                </div>
-              </div>
-
-              {/* Tarjeta de Stock Crítico */}
-              <div className="glass-card" style={styles.kpiCard}>
-                <div style={styles.kpiHeader}>
-                  <div>
-                    <div style={styles.kpiLabel}>Productos Agotados</div>
-                    <div style={{ ...styles.kpiValue, color: outOfStock.length > 0 ? "var(--accent-rose)" : "var(--text-primary)" }}>
-                      {outOfStock.length}
+            {/* ==========================================
+                TAB 1: EXECUTIVE DASHBOARD
+                ========================================== */}
+            {activeTab === "dashboard" && (
+              <>
+                <section style={styles.kpiGrid}>
+                  <div className="glass-card" style={styles.kpiCard}>
+                    <div style={styles.kpiHeader}>
+                      <div>
+                        <div style={styles.kpiLabel}>Ventas Totales</div>
+                        <div style={styles.kpiValue}>${totalSales.totalSales.toLocaleString("es-MX", { minimumFractionDigits: 2 })}</div>
+                      </div>
+                      <div style={{ ...styles.kpiIconWrapper, backgroundColor: "var(--accent-cyan-glow)", color: "var(--accent-cyan)" }}>
+                        <TrendingUp size={24} />
+                      </div>
                     </div>
                   </div>
-                  <div style={{ ...styles.kpiIconWrapper, backgroundColor: "var(--accent-rose-glow)", color: "var(--accent-rose)" }}>
-                    <AlertOctagon size={24} />
+
+                  <div className="glass-card" style={styles.kpiCard}>
+                    <div style={styles.kpiHeader}>
+                      <div>
+                        <div style={styles.kpiLabel}>Pedidos Totales</div>
+                        <div style={styles.kpiValue}>{totalSales.totalOrders}</div>
+                      </div>
+                      <div style={{ ...styles.kpiIconWrapper, backgroundColor: "var(--accent-purple-glow)", color: "var(--accent-purple)" }}>
+                        <ShoppingBag size={24} />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="glass-card" style={styles.kpiCard}>
+                    <div style={styles.kpiHeader}>
+                      <div>
+                        <div style={styles.kpiLabel}>Productos Agotados</div>
+                        <div style={styles.kpiValue}>{outOfStock.length}</div>
+                      </div>
+                      <div style={{ ...styles.kpiIconWrapper, backgroundColor: "var(--accent-rose-glow)", color: "var(--accent-rose)" }}>
+                        <AlertOctagon size={24} />
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                <div style={styles.chartsGrid}>
+                  {/* Pedidos por Estado */}
+                  <div className="glass-card" style={styles.cardPanel}>
+                    <h3 style={styles.panelTitle}>Estados de Pedido</h3>
+                    <div style={styles.chartContainer}>
+                      {orderByStatus.map((item, idx) => (
+                        <div key={idx} style={styles.statusRow}>
+                          <span style={styles.statusLabel}>
+                            <span style={{ ...styles.statusDot, backgroundColor: item.color }}></span>
+                            {item.status}
+                          </span>
+                          <span style={styles.statusCount}>{item.count} pedidos</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Ventas por Tienda */}
+                  <div className="glass-card" style={styles.cardPanel}>
+                    <h3 style={styles.panelTitle}>Ventas por Tienda</h3>
+                    <div style={styles.tableResponsive}>
+                      <table className="table-premium" style={styles.table}>
+                        <thead>
+                          <tr>
+                            <th>Tienda</th>
+                            <th style={{ textAlign: "right" }}>Pedidos</th>
+                            <th style={{ textAlign: "right" }}>Ventas</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {salesByStore.map(store => (
+                            <tr key={store.storeId}>
+                              <td>{store.name}</td>
+                              <td style={{ textAlign: "right" }}>{store.orders}</td>
+                              <td style={{ textAlign: "right" }}>${store.sales.toLocaleString("es-MX", { minimumFractionDigits: 2 })}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 </div>
-                <div style={styles.kpiFooter}>
-                  <span style={styles.kpiFooterText}>Requiere reabastecimiento urgente</span>
-                </div>
-              </div>
-            </section>
 
-            {/* Fila de Gráficos SVG */}
-            <section className="chart-grid">
-              {/* Gráfico de Ventas por Tienda */}
-              <div className="glass-card chart-card">
-                <div className="chart-title">
-                  <span>Rendimiento por Sucursal</span>
-                  <span className="badge-neon badge-cyan">Ventas</span>
-                </div>
-                <div className="svg-container">
-                  <BarChartSales data={salesByStore} />
-                </div>
-              </div>
-
-              {/* Gráfico de Pedidos por Estado */}
-              <div className="glass-card chart-card">
-                <div className="chart-title">
-                  <span>Estado de Pedidos</span>
-                  <span className="badge-neon badge-purple">Distribución</span>
-                </div>
-                <div className="svg-container" style={{ display: "flex", alignItems: "center" }}>
-                  <StatusChart data={orderByStatus} />
-                </div>
-              </div>
-            </section>
-
-            {/* Listas y Tablas Detalladas */}
-            <section style={styles.detailsGrid}>
-              {/* Tabla de Productos sin Stock */}
-              <div className="glass-card" style={styles.detailsCard}>
-                <div style={styles.cardHeader}>
-                  <h3>Alertas de Stock Crítico</h3>
-                  <span className="badge-neon badge-rose">Agotado</span>
-                </div>
-                <div className="table-container">
-                  {outOfStock.length === 0 ? (
-                    <div style={styles.emptyTable}>No hay productos sin stock. ¡Inventario al día!</div>
-                  ) : (
-                    <table className="premium-table">
+                <div style={styles.chartsGrid}>
+                  {/* Top Products */}
+                  <div className="glass-card" style={styles.cardPanel}>
+                    <h3 style={styles.panelTitle}>Productos Más Vendidos</h3>
+                    <table className="table-premium" style={styles.table}>
                       <thead>
                         <tr>
-                          <th>Producto</th>
-                          <th>Categoría</th>
-                          <th>SKU</th>
-                          <th>Estado</th>
+                          <th>Nombre</th>
+                          <th style={{ textAlign: "right" }}>Cantidad</th>
+                          <th style={{ textAlign: "right" }}>Ingresos</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {outOfStock.map((prod) => (
+                        {topProducts.map(prod => (
                           <tr key={prod.productId}>
-                            <td style={{ fontWeight: "500" }}>{prod.name}</td>
-                            <td>{prod.category}</td>
-                            <td><code>{prod.sku}</code></td>
-                            <td>
-                              <span className="badge-neon badge-rose">Sin Stock</span>
-                            </td>
+                            <td>{prod.name}</td>
+                            <td style={{ textAlign: "right" }}>{prod.salesCount} units</td>
+                            <td style={{ textAlign: "right" }}>${prod.revenue.toLocaleString("es-MX", { minimumFractionDigits: 2 })}</td>
                           </tr>
                         ))}
                       </tbody>
                     </table>
-                  )}
-                </div>
-              </div>
+                  </div>
 
-              {/* Tabla de Clientes VIP */}
-              <div className="glass-card" style={styles.detailsCard}>
-                <div style={styles.cardHeader}>
-                  <h3>Clientes más Valiosos</h3>
-                  <span className="badge-neon badge-green">Top Spenders</span>
+                  {/* Out of Stock */}
+                  <div className="glass-card" style={styles.cardPanel}>
+                    <h3 style={styles.panelTitle}>Productos Agotados</h3>
+                    {outOfStock.length === 0 ? (
+                      <p style={{ color: "var(--text-muted)", padding: "20px 0" }}>¡Inventario al día! No hay productos agotados.</p>
+                    ) : (
+                      <table className="table-premium" style={styles.table}>
+                        <thead>
+                          <tr>
+                            <th>Código</th>
+                            <th>Producto</th>
+                            <th>Categoría</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {outOfStock.map(prod => (
+                            <tr key={prod.productId}>
+                              <td>{prod.code || prod.productId.substring(0, 8).toUpperCase()}</td>
+                              <td>{prod.name}</td>
+                              <td><span className="badge-neon badge-cyan">{prod.category}</span></td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    )}
+                  </div>
                 </div>
-                <div className="table-container">
-                  <table className="premium-table">
+              </>
+            )}
+
+            {/* ==========================================
+                TAB 2: PRODUCTS CRUD
+                ========================================== */}
+            {activeTab === "products" && (
+              <div style={styles.crudContainer}>
+                <div style={styles.crudHeader}>
+                  <h2>Listado de Productos</h2>
+                  <button onClick={() => { setShowProductForm(!showProductForm); setEditingProductId(null); setProductForm({ code: "", name: "", description: "", category: "", price: "", stock: "", shop: "" }); }} className="btn-neon">
+                    <Plus size={16} style={{ marginRight: "6px" }} />
+                    {showProductForm ? "Ocultar Formulario" : "Agregar Producto"}
+                  </button>
+                </div>
+
+                {showProductForm && (
+                  <form onSubmit={handleSaveProduct} className="glass-card" style={styles.formCard}>
+                    <h3>{editingProductId ? "Editar Producto" : "Nuevo Producto"}</h3>
+                    <div style={styles.formGrid}>
+                      <div style={styles.formGroup}>
+                        <label>Código de Barra *</label>
+                        <input type="text" placeholder="Ej. TV-4K-55" value={productForm.code} onChange={e => setProductForm({ ...productForm, code: e.target.value })} style={styles.formInput} />
+                      </div>
+                      <div style={styles.formGroup}>
+                        <label>Nombre del Producto *</label>
+                        <input type="text" placeholder="Ej. Smart TV" value={productForm.name} onChange={e => setProductForm({ ...productForm, name: e.target.value })} style={styles.formInput} />
+                      </div>
+                      <div style={styles.formGroup}>
+                        <label>Categoría *</label>
+                        <input type="text" placeholder="Ej. Electrónica" value={productForm.category} onChange={e => setProductForm({ ...productForm, category: e.target.value })} style={styles.formInput} />
+                      </div>
+                      <div style={styles.formGroup}>
+                        <label>Precio ($MXN) *</label>
+                        <input type="number" min="0" step="0.01" value={productForm.price} onChange={e => setProductForm({ ...productForm, price: e.target.value })} style={styles.formInput} />
+                      </div>
+                      <div style={styles.formGroup}>
+                        <label>Stock Disponible</label>
+                        <input type="number" min="0" value={productForm.stock} onChange={e => setProductForm({ ...productForm, stock: e.target.value })} style={styles.formInput} />
+                      </div>
+                      <div style={styles.formGroup}>
+                        <label>Tienda Propietaria *</label>
+                        <select value={productForm.shop} onChange={e => setProductForm({ ...productForm, shop: e.target.value })} style={styles.formInput}>
+                          <option value="">Selecciona una tienda</option>
+                          {storesList.map(s => (
+                            <option key={s.storeId} value={s.storeId}>{s.name}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div style={{ ...styles.formGroup, gridColumn: "1 / -1" }}>
+                        <label>Descripción</label>
+                        <textarea placeholder="Detalle técnico u otras características del producto..." value={productForm.description} onChange={e => setProductForm({ ...productForm, description: e.target.value })} style={{ ...styles.formInput, height: "80px", resize: "none" }}></textarea>
+                      </div>
+                    </div>
+                    <div style={styles.formActions}>
+                      <button type="button" onClick={() => { setShowProductForm(false); setEditingProductId(null); }} className="btn-secondary">Cancelar</button>
+                      <button type="submit" className="btn-neon">Guardar Producto</button>
+                    </div>
+                  </form>
+                )}
+
+                <div className="glass-card" style={{ padding: "12px" }}>
+                  <table className="table-premium" style={styles.table}>
                     <thead>
                       <tr>
-                        <th>Cliente</th>
-                        <th>Compras</th>
-                        <th>Total Gastado</th>
-                        <th>Nivel</th>
+                        <th>Código</th>
+                        <th>Nombre</th>
+                        <th>Categoría</th>
+                        <th style={{ textAlign: "right" }}>Precio</th>
+                        <th style={{ textAlign: "right" }}>Stock</th>
+                        <th>Tienda</th>
+                        <th style={{ textAlign: "center" }}>Acciones</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {topCustomers.map((cust) => (
-                        <tr key={cust.customerId}>
-                          <td>
-                            <div style={styles.custName}>{cust.name}</div>
-                            <div style={styles.custEmail}>{cust.email}</div>
-                          </td>
-                          <td>{cust.ordersCount} pedidos</td>
-                          <td style={{ fontWeight: "600", color: "#10b981" }}>
-                            ${cust.totalSpent.toLocaleString("es-MX", { minimumFractionDigits: 2 })}
-                          </td>
-                          <td>
-                            <span
-                              className={`badge-neon ${
-                                cust.tier === "VIP" ? "badge-rose" : cust.tier === "Oro" ? "badge-amber" : "badge-cyan"
-                              }`}
-                            >
-                              {cust.tier}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
+                      {productsList.length === 0 ? (
+                        <tr><td colSpan="7" style={{ textAlign: "center", color: "var(--text-muted)" }}>No hay productos registrados.</td></tr>
+                      ) : (
+                        productsList.map(prod => (
+                          <tr key={prod.productId}>
+                            <td>{prod.code || prod.productId.substring(0, 8).toUpperCase()}</td>
+                            <td><strong>{prod.name}</strong></td>
+                            <td><span className="badge-neon badge-cyan">{prod.category}</span></td>
+                            <td style={{ textAlign: "right" }}>${prod.price.toLocaleString("es-MX", { minimumFractionDigits: 2 })}</td>
+                            <td style={{ textAlign: "right" }}>{prod.stock}</td>
+                            <td>{storesList.find(s => s.storeId === prod.shop)?.name || "Tienda Online"}</td>
+                            <td style={styles.actionButtonsCol}>
+                              <button onClick={() => handleEditProduct(prod)} className="btn-secondary" style={styles.tableBtn}>Editar</button>
+                              <button onClick={() => handleDeleteProduct(prod.productId)} className="btn-secondary" style={{ ...styles.tableBtn, color: "var(--accent-rose)", borderColor: "rgba(244, 63, 94, 0.2)" }}>Desactivar</button>
+                            </td>
+                          </tr>
+                        ))
+                      )}
                     </tbody>
                   </table>
                 </div>
               </div>
-            </section>
+            )}
+
+            {/* ==========================================
+                TAB 3: STORES CRUD
+                ========================================== */}
+            {activeTab === "stores" && (
+              <div style={styles.crudContainer}>
+                <div style={styles.crudHeader}>
+                  <h2>Gestión de Tiendas</h2>
+                  <button onClick={() => { setShowStoreForm(!showStoreForm); setEditingStoreId(null); setStoreForm({ name: "", address: "", phone: "" }); }} className="btn-neon">
+                    <Plus size={16} style={{ marginRight: "6px" }} />
+                    {showStoreForm ? "Ocultar Formulario" : "Agregar Tienda"}
+                  </button>
+                </div>
+
+                {showStoreForm && (
+                  <form onSubmit={handleSaveStore} className="glass-card" style={styles.formCard}>
+                    <h3>{editingStoreId ? "Editar Tienda" : "Nueva Tienda"}</h3>
+                    <div style={styles.formGrid}>
+                      <div style={styles.formGroup}>
+                        <label>Nombre de la Sucursal *</label>
+                        <input type="text" placeholder="Ej. Sucursal Sur" value={storeForm.name} onChange={e => setStoreForm({ ...storeForm, name: e.target.value })} style={styles.formInput} />
+                      </div>
+                      <div style={styles.formGroup}>
+                        <label>Teléfono de Contacto</label>
+                        <input type="text" placeholder="Ej. 555-1234" value={storeForm.phone} onChange={e => setStoreForm({ ...storeForm, phone: e.target.value })} style={styles.formInput} />
+                      </div>
+                      <div style={{ ...styles.formGroup, gridColumn: "1 / -1" }}>
+                        <label>Dirección Física *</label>
+                        <input type="text" placeholder="Ej. Av. Insurgentes Sur 456" value={storeForm.address} onChange={e => setStoreForm({ ...storeForm, address: e.target.value })} style={styles.formInput} />
+                      </div>
+                    </div>
+                    <div style={styles.formActions}>
+                      <button type="button" onClick={() => { setShowStoreForm(false); setEditingStoreId(null); }} className="btn-secondary">Cancelar</button>
+                      <button type="submit" className="btn-neon">Guardar Tienda</button>
+                    </div>
+                  </form>
+                )}
+
+                <div className="glass-card" style={{ padding: "12px" }}>
+                  <table className="table-premium" style={styles.table}>
+                    <thead>
+                      <tr>
+                        <th>ID de Tienda</th>
+                        <th>Nombre</th>
+                        <th>Dirección</th>
+                        <th>Teléfono</th>
+                        <th>Estado</th>
+                        <th style={{ textAlign: "center" }}>Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {storesList.length === 0 ? (
+                        <tr><td colSpan="6" style={{ textAlign: "center", color: "var(--text-muted)" }}>No hay tiendas registradas.</td></tr>
+                      ) : (
+                        storesList.map(store => (
+                          <tr key={store.storeId}>
+                            <td>{store.storeId.substring(0, 10).toUpperCase()}</td>
+                            <td><strong>{store.name}</strong></td>
+                            <td>{store.address}</td>
+                            <td>{store.phone || "Sin teléfono"}</td>
+                            <td>
+                              <span className={`badge-neon ${store.status === "ACTIVE" ? "badge-green" : "badge-rose"}`}>
+                                {store.status || "ACTIVE"}
+                              </span>
+                            </td>
+                            <td style={styles.actionButtonsCol}>
+                              <button onClick={() => handleEditStore(store)} className="btn-secondary" style={styles.tableBtn}>Editar</button>
+                              <button onClick={() => handleDeactivateStore(store.storeId)} className="btn-secondary" style={{ ...styles.tableBtn, color: "var(--accent-rose)", borderColor: "rgba(244, 63, 94, 0.2)" }}>Desactivar</button>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* ==========================================
+                TAB 4: USERS MANAGEMENT
+                ========================================== */}
+            {activeTab === "users" && (
+              <div style={styles.crudContainer}>
+                <h2>Gestión Administrativa de Usuarios</h2>
+                
+                <div className="glass-card" style={{ padding: "12px", marginTop: "15px" }}>
+                  <table className="table-premium" style={styles.table}>
+                    <thead>
+                      <tr>
+                        <th>Nombre Completo</th>
+                        <th>Correo Electrónico</th>
+                        <th>Rol</th>
+                        <th>Estado de Cuenta</th>
+                        <th style={{ textAlign: "center" }}>Cambiar Rol</th>
+                        <th style={{ textAlign: "center" }}>Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {usersList.length === 0 ? (
+                        <tr><td colSpan="6" style={{ textAlign: "center", color: "var(--text-muted)" }}>No hay usuarios registrados.</td></tr>
+                      ) : (
+                        usersList.map(usr => (
+                          <tr key={usr.email}>
+                            <td><strong>{usr.name}</strong></td>
+                            <td>{usr.email}</td>
+                            <td>
+                              <span className={`badge-neon ${getRoleBadgeClass(usr.role)}`}>
+                                {usr.role}
+                              </span>
+                            </td>
+                            <td>
+                              <span className={`badge-neon ${usr.verified ? "badge-green" : "badge-rose"}`}>
+                                {usr.verified ? "Verificado (Activo)" : "Desactivado"}
+                              </span>
+                            </td>
+                            <td style={{ textAlign: "center" }}>
+                              <select 
+                                value={usr.role} 
+                                onChange={e => handleChangeUserRole(usr.email, e.target.value)} 
+                                style={styles.roleSelect}
+                              >
+                                <option value="Cliente">Cliente</option>
+                                <option value="Operador">Operador</option>
+                                <option value="Administrador">Administrador</option>
+                              </select>
+                            </td>
+                            <td style={styles.actionButtonsCol}>
+                              <button 
+                                onClick={() => handleDeactivateUser(usr.email)} 
+                                className="btn-secondary" 
+                                style={{ ...styles.tableBtn, color: "var(--accent-rose)", borderColor: "rgba(244, 63, 94, 0.2)" }}
+                                disabled={usr.email === session.user.email}
+                              >
+                                Desactivar
+                              </button>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* ==========================================
+                TAB 5: ORDERS MANAGEMENT
+                ========================================== */}
+            {activeTab === "orders" && (
+              <div style={styles.crudContainer}>
+                <h2>Supervisión y Control de Pedidos</h2>
+
+                <div className="glass-card" style={{ padding: "12px", marginTop: "15px" }}>
+                  <table className="table-premium" style={styles.table}>
+                    <thead>
+                      <tr>
+                        <th>ID de Pedido</th>
+                        <th>Cliente Email</th>
+                        <th>Fecha</th>
+                        <th>Productos / Unidades</th>
+                        <th style={{ textAlign: "right" }}>Total ($MXN)</th>
+                        <th>Estado Actual</th>
+                        <th style={{ textAlign: "center" }}>Cambiar Estado</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {ordersList.length === 0 ? (
+                        <tr><td colSpan="7" style={{ textAlign: "center", color: "var(--text-muted)" }}>No hay pedidos registrados en el sistema.</td></tr>
+                      ) : (
+                        ordersList.map(order => (
+                          <tr key={order.orderId}>
+                            <td>{order.orderId.substring(0, 10).toUpperCase()}</td>
+                            <td>{order.customerEmail}</td>
+                            <td>{new Date(order.createdAt).toLocaleDateString()}</td>
+                            <td>
+                              <div style={{ fontSize: "0.8rem", color: "var(--text-secondary)" }}>
+                                {order.items.map((it, idx) => (
+                                  <div key={idx}>- {it.name} (x{it.quantity})</div>
+                                ))}
+                              </div>
+                            </td>
+                            <td style={{ textAlign: "right" }}><strong>${order.total.toLocaleString("es-MX", { minimumFractionDigits: 2 })}</strong></td>
+                            <td>
+                              <span className={`badge-neon ${
+                                order.status === "Entregado" ? "badge-green" :
+                                order.status === "Cancelado" ? "badge-rose" :
+                                order.status === "Enviado" ? "badge-cyan" : "badge-orange"
+                              }`}>
+                                {order.status}
+                              </span>
+                            </td>
+                            <td style={{ textAlign: "center" }}>
+                              <select 
+                                value={order.status} 
+                                onChange={e => handleChangeOrderStatus(order.orderId, e.target.value)}
+                                style={styles.statusSelect}
+                                disabled={order.status === "Cancelado" || order.status === "Entregado"}
+                              >
+                                <option value="Pendiente">Pendiente</option>
+                                <option value="Confirmado">Confirmado</option>
+                                <option value="En preparación">En preparación</option>
+                                <option value="Enviado">Enviado</option>
+                                <option value="Entregado">Entregado</option>
+                                <option value="Cancelado">Cancelado</option>
+                              </select>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
           </>
         )}
       </main>
@@ -372,547 +883,348 @@ export default function Dashboard() {
   );
 }
 
-// Componente para Dibujar Gráfico de Barras con SVG Puro
-function BarChartSales({ data }) {
-  if (!data || data.length === 0) return null;
-  const maxSales = Math.max(...data.map((d) => d.sales));
-  
-  // Configuración de dimensiones
-  const width = 500;
-  const height = 240;
-  const paddingLeft = 140;
-  const paddingRight = 30;
-  const paddingTop = 10;
-  const paddingBottom = 30;
-
-  const chartWidth = width - paddingLeft - paddingRight;
-  const chartHeight = height - paddingTop - paddingBottom;
-  
-  const barHeight = 24;
-  const gap = 14;
-
-  return (
-    <svg viewBox={`0 0 ${width} ${height}`} className="svg-chart">
-      {/* Grilla Vertical */}
-      {[0, 0.25, 0.5, 0.75, 1].map((ratio, idx) => {
-        const x = paddingLeft + ratio * chartWidth;
-        const valueLabel = Math.round(ratio * maxSales);
-        return (
-          <g key={idx}>
-            <line
-              x1={x}
-              y1={paddingTop}
-              x2={x}
-              y2={height - paddingBottom}
-              stroke="var(--border-color)"
-              strokeDasharray="4 4"
-            />
-            <text
-              x={x}
-              y={height - 10}
-              fill="var(--text-muted)"
-              fontSize="10"
-              textAnchor="middle"
-            >
-              ${(valueLabel / 1000).toFixed(0)}k
-            </text>
-          </g>
-        );
-      })}
-
-      {/* Dibujar Barras Horizontales */}
-      {data.map((item, idx) => {
-        const y = paddingTop + idx * (barHeight + gap);
-        const barWidth = (item.sales / maxSales) * chartWidth;
-        
-        return (
-          <g key={item.storeId} className="bar-group">
-            {/* Nombre de la Tienda */}
-            <text
-              x={paddingLeft - 15}
-              y={y + barHeight / 2 + 4}
-              fill="var(--text-secondary)"
-              fontSize="11"
-              fontWeight="500"
-              textAnchor="end"
-            >
-              {item.name.length > 20 ? `${item.name.substring(0, 18)}...` : item.name}
-            </text>
-
-            {/* Barra de Fondo */}
-            <rect
-              x={paddingLeft}
-              y={y}
-              width={chartWidth}
-              height={barHeight}
-              rx="4"
-              fill="rgba(255, 255, 255, 0.02)"
-            />
-
-            {/* Barra de Valor Animada */}
-            <rect
-              x={paddingLeft}
-              y={y}
-              width={barWidth}
-              height={barHeight}
-              rx="4"
-              fill="url(#barGradient)"
-              className="bar-rect"
-            />
-
-            {/* Valor numérico flotante */}
-            <text
-              x={paddingLeft + barWidth + 8}
-              y={y + barHeight / 2 + 4}
-              fill="var(--text-primary)"
-              fontSize="10"
-              fontWeight="600"
-            >
-              ${Math.round(item.sales).toLocaleString()}
-            </text>
-          </g>
-        );
-      })}
-
-      {/* Definición de Degradado Neon */}
-      <defs>
-        <linearGradient id="barGradient" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stopColor="var(--accent-cyan)" />
-          <stop offset="100%" stopColor="var(--accent-purple)" />
-        </linearGradient>
-      </defs>
-    </svg>
-  );
-}
-
-// Componente para Pedidos por Estado en SVG Puro
-function StatusChart({ data }) {
-  if (!data || data.length === 0) return null;
-  const total = data.reduce((acc, curr) => acc + curr.count, 0);
-  
-  // Renderizar barras de progreso apiladas o anillos concéntricos
-  // Múltiples anillos concéntricos de progreso se ven increíblemente futuristas
-  return (
-    <div style={styles.statusChartContainer}>
-      <div style={styles.donutContainer}>
-        <svg viewBox="0 0 120 120" style={{ width: "130px", height: "130px" }}>
-          {/* Anillos concéntricos */}
-          {data.map((item, idx) => {
-            const radius = 45 - idx * 9;
-            const circumference = 2 * Math.PI * radius;
-            const strokeDashoffset = circumference - (item.count / total) * circumference;
-            
-            return (
-              <g key={item.status}>
-                {/* Fondo del anillo */}
-                <circle
-                  cx="60"
-                  cy="60"
-                  r={radius}
-                  fill="transparent"
-                  stroke="rgba(255, 255, 255, 0.03)"
-                  strokeWidth="6"
-                />
-                {/* Anillo de valor animado */}
-                <circle
-                  cx="60"
-                  cy="60"
-                  r={radius}
-                  fill="transparent"
-                  stroke={item.color || "#06b6d4"}
-                  strokeWidth="6"
-                  strokeDasharray={circumference}
-                  className="ring-segment"
-                  style={{ "--ring-offset": strokeDashoffset }}
-                  strokeLinecap="round"
-                />
-              </g>
-            );
-          })}
-        </svg>
-        <div style={styles.donutCenter}>
-          <span style={styles.donutCenterNum}>{total.toLocaleString()}</span>
-          <span style={styles.donutCenterLabel}>Pedidos</span>
-        </div>
-      </div>
-
-      <div style={styles.legendContainer}>
-        {data.map((item) => {
-          const percentage = ((item.count / total) * 100).toFixed(1);
-          return (
-            <div key={item.status} style={styles.legendItem}>
-              <div style={styles.legendDotContainer}>
-                <div style={{ ...styles.legendDot, backgroundColor: item.color }} />
-                <span style={styles.legendLabel}>{item.status}</span>
-              </div>
-              <div style={styles.legendValues}>
-                <span style={styles.legendCount}>{item.count}</span>
-                <span style={styles.legendPerc}>{percentage}%</span>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-function LoaderComponent() {
-  return (
-    <div style={styles.loader}>
-      <Loader2 className="animate-spin" size={40} style={{ color: "var(--accent-cyan)" }} />
-      <span style={{ color: "var(--text-secondary)", fontWeight: "500" }}>Cargando métricas de AWS...</span>
-    </div>
-  );
-}
-
+// Estilos del Layout Dashboard
 const styles = {
-  sidebarTop: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "35px",
+  logoText: {
+    fontSize: "1.5rem",
+    background: "linear-gradient(135deg, #06b6d4 0%, #8b5cf6 100%)",
+    WebkitBackgroundClip: "text",
+    WebkitTextFillColor: "transparent",
+    fontWeight: "800"
   },
   logoContainer: {
     display: "flex",
     alignItems: "center",
-    gap: "12px",
+    gap: "10px",
+    padding: "10px 0"
   },
-  logoText: {
-    fontSize: "1.4rem",
-    background: "linear-gradient(135deg, #06b6d4 0%, #8b5cf6 100%)",
-    WebkitBackgroundClip: "text",
-    WebkitTextFillColor: "transparent",
+  sidebarTop: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "30px"
   },
   navMenu: {
     display: "flex",
     flexDirection: "column",
-    gap: "10px",
+    gap: "8px"
   },
   navItem: {
     display: "flex",
     alignItems: "center",
-    gap: "14px",
+    gap: "12px",
     padding: "12px 16px",
     borderRadius: "10px",
-    cursor: "pointer",
-    fontSize: "0.95rem",
-    fontWeight: "500",
     color: "var(--text-secondary)",
+    cursor: "pointer",
+    fontWeight: "600",
     transition: "all 0.2s ease",
+    fontSize: "0.95rem"
   },
   navItemActive: {
-    background: "rgba(6, 182, 212, 0.1)",
-    border: "1px solid rgba(6, 182, 212, 0.25)",
-    color: "var(--accent-cyan)",
-  },
-  navItemDisabled: {
-    display: "flex",
-    alignItems: "center",
-    gap: "14px",
-    padding: "12px 16px",
-    borderRadius: "10px",
-    color: "var(--text-muted)",
-    fontSize: "0.95rem",
-    opacity: 0.5,
-    cursor: "not-allowed",
+    background: "linear-gradient(135deg, var(--accent-cyan-glow) 0%, var(--accent-purple-glow) 100%)",
+    borderColor: "var(--accent-cyan)",
+    color: "var(--text-primary)",
+    boxShadow: "0 4px 15px rgba(6, 182, 212, 0.15)"
   },
   sidebarBottom: {
+    borderTop: "1px solid var(--border-color)",
+    paddingTop: "20px",
     display: "flex",
     flexDirection: "column",
-    gap: "20px",
+    gap: "16px"
   },
   userInfoCard: {
     display: "flex",
     alignItems: "center",
     gap: "12px",
-    padding: "14px",
+    padding: "10px",
+    borderRadius: "8px",
     backgroundColor: "rgba(255, 255, 255, 0.02)",
-    border: "1px solid var(--border-color)",
-    borderRadius: "12px",
+    border: "1px solid var(--border-color)"
   },
   avatar: {
-    width: "36px",
-    height: "36px",
-    borderRadius: "8px",
-    backgroundColor: "rgba(6, 182, 212, 0.12)",
-    color: "var(--accent-cyan)",
+    width: "32px",
+    height: "32px",
+    borderRadius: "50%",
+    background: "linear-gradient(135deg, var(--accent-cyan-glow) 0%, var(--accent-purple-glow) 100%)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    border: "1px solid rgba(6, 182, 212, 0.2)",
+    border: "1px solid var(--border-color)",
+    color: "var(--accent-cyan)"
   },
   userInfoText: {
     display: "flex",
     flexDirection: "column",
-    textAlign: "left",
-    overflow: "hidden",
+    minWidth: 0
   },
   userName: {
     fontSize: "0.85rem",
-    fontWeight: "600",
+    fontWeight: "700",
     color: "var(--text-primary)",
     whiteSpace: "nowrap",
-    textOverflow: "ellipsis",
     overflow: "hidden",
+    textOverflow: "ellipsis"
   },
   userEmail: {
     fontSize: "0.75rem",
     color: "var(--text-muted)",
     whiteSpace: "nowrap",
-    textOverflow: "ellipsis",
     overflow: "hidden",
+    textOverflow: "ellipsis"
   },
   logoutBtn: {
-    background: "none",
-    border: "none",
-    color: "var(--text-secondary)",
+    backgroundColor: "rgba(244, 63, 94, 0.1)",
+    border: "1px solid rgba(244, 63, 94, 0.2)",
+    color: "#f43f5e",
     display: "flex",
     alignItems: "center",
-    gap: "14px",
-    padding: "12px 16px",
+    justifyContent: "center",
+    gap: "10px",
+    padding: "10px 16px",
+    borderRadius: "8px",
     cursor: "pointer",
-    fontSize: "0.95rem",
-    fontWeight: "500",
-    width: "100%",
-    borderRadius: "10px",
-    transition: "all 0.2s ease",
+    fontWeight: "600",
+    fontSize: "0.9rem",
+    transition: "all 0.2s ease"
+  },
+  sidebar: {
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "space-between",
+    width: "280px",
+    borderRight: "1px solid var(--border-color)",
+    padding: "24px",
+    backgroundColor: "rgba(15, 23, 42, 0.75)",
+    backdropFilter: "blur(var(--glass-blur))",
+    height: "100vh",
+    position: "sticky",
+    top: 0
+  },
+  headerSubtitle: {
+    fontSize: "0.85rem",
+    color: "var(--text-secondary)",
+    marginTop: "4px"
   },
   headerBar: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    flexWrap: "wrap",
-    gap: "20px",
+    paddingBottom: "20px",
     borderBottom: "1px solid var(--border-color)",
-    paddingBottom: "24px",
-    marginBottom: "32px",
-    textAlign: "left",
-  },
-  headerSubtitle: {
-    color: "var(--text-secondary)",
-    fontSize: "0.95rem",
-    marginTop: "4px",
+    marginBottom: "24px"
   },
   headerActions: {
     display: "flex",
     alignItems: "center",
-    gap: "12px",
+    gap: "12px"
   },
   dbToggleCard: {
     display: "flex",
     alignItems: "center",
-    gap: "16px",
-    padding: "6px 14px",
+    gap: "12px",
+    padding: "8px 14px",
+    backgroundColor: "rgba(15, 23, 42, 0.45)"
   },
   dbToggleLabel: {
     display: "flex",
     alignItems: "center",
     gap: "8px",
-    fontSize: "0.85rem",
-    color: "var(--text-secondary)",
+    fontSize: "0.85rem"
   },
   toggleBtn: {
     padding: "6px 12px",
-    fontSize: "0.75rem",
+    fontSize: "0.8rem",
+    borderRadius: "6px",
     display: "flex",
     alignItems: "center",
-    gap: "6px",
+    gap: "4px"
   },
   reloadBtn: {
     padding: "10px",
-    borderRadius: "10px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
+    borderRadius: "8px"
   },
   errorBanner: {
     display: "flex",
     alignItems: "center",
-    gap: "20px",
-    padding: "20px",
-    border: "1px solid rgba(244, 63, 94, 0.25)",
+    gap: "16px",
+    padding: "16px 20px",
     backgroundColor: "rgba(244, 63, 94, 0.08)",
-    marginBottom: "24px",
-    flexWrap: "wrap",
-    textAlign: "left",
+    borderColor: "rgba(244, 63, 94, 0.25)",
+    marginBottom: "20px"
   },
   errorTextContainer: {
-    flex: 1,
+    flex: 1
   },
   errorBtn: {
     padding: "8px 16px",
     fontSize: "0.85rem",
+    borderRadius: "8px"
   },
   loaderContainer: {
     display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    minHeight: "350px",
-  },
-  loader: {
-    display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    gap: "14px",
+    justifyContent: "center",
+    padding: "100px 0"
   },
   kpiGrid: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-    gap: "24px",
-    marginBottom: "24px",
+    gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+    gap: "20px",
+    marginBottom: "24px"
   },
   kpiCard: {
     padding: "24px",
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "space-between",
-    minHeight: "130px",
-    textAlign: "left",
+    backgroundColor: "rgba(15, 23, 42, 0.45)"
   },
   kpiHeader: {
     display: "flex",
     justifyContent: "space-between",
-    alignItems: "flex-start",
+    alignItems: "start"
   },
   kpiLabel: {
     fontSize: "0.85rem",
     color: "var(--text-secondary)",
-    fontWeight: "500",
-    textTransform: "uppercase",
-    letterSpacing: "0.05em",
+    fontWeight: "500"
   },
   kpiValue: {
     fontSize: "1.8rem",
-    fontWeight: "700",
-    marginTop: "6px",
-    fontFamily: "var(--font-heading)",
+    fontWeight: "800",
+    color: "var(--text-primary)",
+    marginTop: "8px"
   },
   kpiIconWrapper: {
-    width: "44px",
-    height: "44px",
-    borderRadius: "10px",
+    width: "48px",
+    height: "48px",
+    borderRadius: "12px",
     display: "flex",
     alignItems: "center",
-    justifyContent: "center",
-    border: "1px solid rgba(255, 255, 255, 0.05)",
+    justifyContent: "center"
   },
-  kpiFooter: {
-    display: "flex",
-    alignItems: "center",
-    gap: "6px",
-    fontSize: "0.8rem",
-    marginTop: "16px",
-    borderTop: "1px solid var(--border-color)",
-    paddingTop: "12px",
-  },
-  kpiFooterText: {
-    color: "var(--text-muted)",
-  },
-  detailsGrid: {
+  chartsGrid: {
     display: "grid",
     gridTemplateColumns: "repeat(auto-fit, minmax(400px, 1fr))",
     gap: "24px",
-    marginTop: "24px",
+    marginBottom: "24px"
   },
-  detailsCard: {
+  cardPanel: {
     padding: "24px",
+    backgroundColor: "rgba(15, 23, 42, 0.4)",
     display: "flex",
     flexDirection: "column",
-    textAlign: "left",
+    gap: "16px"
   },
-  cardHeader: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: "16px",
-  },
-  emptyTable: {
-    color: "var(--text-muted)",
-    padding: "30px",
-    textAlign: "center",
-    fontSize: "0.95rem",
-  },
-  custName: {
-    fontWeight: "500",
-    color: "var(--text-primary)",
-  },
-  custEmail: {
-    fontSize: "0.75rem",
-    color: "var(--text-muted)",
-  },
-  // Sub-estilos de Gráfico de Pedidos
-  statusChartContainer: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-around",
-    width: "100%",
-    gap: "20px",
-    flexWrap: "wrap",
-  },
-  donutContainer: {
-    position: "relative",
-    display: "inline-flex",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  donutCenter: {
-    position: "absolute",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  donutCenterNum: {
-    fontSize: "1.4rem",
+  panelTitle: {
+    fontSize: "1.1rem",
     fontWeight: "700",
-    color: "var(--text-primary)",
-    fontFamily: "var(--font-heading)",
+    color: "var(--text-primary)"
   },
-  donutCenterLabel: {
-    fontSize: "0.7rem",
-    color: "var(--text-muted)",
-    textTransform: "uppercase",
-    letterSpacing: "0.05em",
-  },
-  legendContainer: {
+  chartContainer: {
     display: "flex",
     flexDirection: "column",
-    gap: "10px",
-    flex: 1,
-    minWidth: "180px",
+    gap: "12px"
   },
-  legendItem: {
+  statusRow: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    fontSize: "0.85rem",
-    borderBottom: "1px solid rgba(255, 255, 255, 0.02)",
-    paddingBottom: "6px",
+    padding: "10px 14px",
+    backgroundColor: "rgba(255, 255, 255, 0.02)",
+    border: "1px solid var(--border-color)",
+    borderRadius: "8px"
   },
-  legendDotContainer: {
+  statusLabel: {
     display: "flex",
     alignItems: "center",
-    gap: "8px",
+    gap: "10px",
+    fontSize: "0.85rem",
+    fontWeight: "600",
+    color: "var(--text-secondary)"
   },
-  legendDot: {
-    width: "8px",
-    height: "8px",
-    borderRadius: "50%",
+  statusDot: {
+    width: "10px",
+    height: "10px",
+    borderRadius: "50%"
   },
-  legendLabel: {
-    color: "var(--text-secondary)",
+  statusCount: {
+    fontSize: "0.85rem",
+    color: "var(--text-primary)",
+    fontWeight: "700"
   },
-  legendValues: {
+  tableResponsive: {
+    overflowX: "auto"
+  },
+  table: {
+    width: "100%",
+    borderCollapse: "collapse"
+  },
+  crudContainer: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "20px"
+  },
+  crudHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center"
+  },
+  formCard: {
+    padding: "24px",
+    backgroundColor: "rgba(15, 23, 42, 0.6)",
+    display: "flex",
+    flexDirection: "column",
+    gap: "20px"
+  },
+  formGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+    gap: "16px"
+  },
+  formGroup: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "6px"
+  },
+  formInput: {
+    backgroundColor: "rgba(8, 12, 20, 0.6)",
+    border: "1px solid var(--border-color)",
+    padding: "10px 14px",
+    borderRadius: "8px",
+    color: "var(--text-primary)",
+    fontSize: "0.85rem",
+    outline: "none"
+  },
+  formActions: {
+    display: "flex",
+    justifyContent: "flex-end",
+    gap: "12px",
+    marginTop: "10px"
+  },
+  actionButtonsCol: {
     display: "flex",
     gap: "8px",
+    justifyContent: "center"
   },
-  legendCount: {
-    fontWeight: "600",
+  tableBtn: {
+    padding: "6px 12px",
+    fontSize: "0.8rem",
+    borderRadius: "6px"
+  },
+  roleSelect: {
+    backgroundColor: "rgba(8, 12, 20, 0.6)",
+    border: "1px solid var(--border-color)",
+    padding: "4px 8px",
+    borderRadius: "6px",
     color: "var(--text-primary)",
+    fontSize: "0.8rem"
   },
-  legendPerc: {
-    color: "var(--text-muted)",
-    width: "45px",
-    textAlign: "right",
+  statusSelect: {
+    backgroundColor: "rgba(8, 12, 20, 0.6)",
+    border: "1px solid var(--border-color)",
+    padding: "4px 8px",
+    borderRadius: "6px",
+    color: "var(--text-primary)",
+    fontSize: "0.8rem"
   }
 };

@@ -40,9 +40,13 @@ exports.handler = async (event) => {
             TableName: "Products",
             Key: { productId },
             UpdateExpression:
-                "SET productName = :name, description = :descritpion, category = :category, price = :price, stock = :stock",
+                "SET #n = :name, description = :description, category = :category, price = :price, stock = :stock",
+            ExpressionAttributeNames: {
+                "#n": "name"
+            },
             ExpressionAttributeValues: {
                 ":name": body.name,
+                ":description": body.description,
                 ":category": body.category,
                 ":price": body.price,
                 ":stock": body.stock,

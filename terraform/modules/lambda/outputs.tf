@@ -90,3 +90,67 @@ output "sales_by_store_function_name" {
   value = aws_lambda_function.sales_by_store.function_name
 }
 
+# Products Outputs
+output "create_product_invoke_arn" {
+  value = aws_lambda_function.create_product.invoke_arn
+}
+output "create_product_function_name" {
+  value = aws_lambda_function.create_product.function_name
+}
+output "get_products_invoke_arn" {
+  value = aws_lambda_function.get_Products.invoke_arn
+}
+output "get_products_function_name" {
+  value = aws_lambda_function.get_Products.function_name
+}
+output "get_product_by_id_invoke_arn" {
+  value = aws_lambda_function.get_product_by_id.invoke_arn
+}
+output "get_product_by_id_function_name" {
+  value = aws_lambda_function.get_product_by_id.function_name
+}
+output "update_product_invoke_arn" {
+  value = aws_lambda_function.update_product.invoke_arn
+}
+output "update_product_function_name" {
+  value = aws_lambda_function.update_product.function_name
+}
+output "delete_product_invoke_arn" {
+  value = aws_lambda_function.delete_product.invoke_arn
+}
+output "delete_product_function_name" {
+  value = aws_lambda_function.delete_product.function_name
+}
+
+# Stores Outputs
+output "create_store_invoke_arn" {
+  value = aws_lambda_function.create_store.invoke_arn
+}
+output "create_store_function_name" {
+  value = aws_lambda_function.create_store.function_name
+}
+output "get_stores_invoke_arn" {
+  value = aws_lambda_function.get_stores.invoke_arn
+}
+output "get_stores_function_name" {
+  value = aws_lambda_function.get_stores.function_name
+}
+output "get_store_by_id_invoke_arn" {
+  value = aws_lambda_function.get_store_by_id.invoke_arn
+}
+output "get_store_by_id_function_name" {
+  value = aws_lambda_function.get_store_by_id.function_name
+}
+output "update_store_invoke_arn" {
+  value = aws_lambda_function.update_store.invoke_arn
+}
+output "update_store_function_name" {
+  value = aws_lambda_function.update_store.function_name
+}
+output "deactivate_store_invoke_arn" {
+  value = aws_lambda_function.deactivate_store.invoke_arn
+}
+output "deactivate_store_function_name" {
+  value = aws_lambda_function.deactivate_store.function_name
+}
+

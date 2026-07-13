@@ -89,3 +89,27 @@ variable "top_customers_function_name" {
 variable "sales_by_store_function_name" {
   type = string
 }
+
+# Products
+variable "create_product_invoke_arn" { type = string }
+variable "create_product_function_name" { type = string }
+variable "get_products_invoke_arn" { type = string }
+variable "get_products_function_name" { type = string }
+variable "get_product_by_id_invoke_arn" { type = string }
+variable "get_product_by_id_function_name" { type = string }
+variable "update_product_invoke_arn" { type = string }
+variable "update_product_function_name" { type = string }
+variable "delete_product_invoke_arn" { type = string }
+variable "delete_product_function_name" { type = string }
+
+# Stores
+variable "create_store_invoke_arn" { type = string }
+variable "create_store_function_name" { type = string }
+variable "get_stores_invoke_arn" { type = string }
+variable "get_stores_function_name" { type = string }
+variable "get_store_by_id_invoke_arn" { type = string }
+variable "get_store_by_id_function_name" { type = string }
+variable "update_store_invoke_arn" { type = string }
+variable "update_store_function_name" { type = string }
+variable "deactivate_store_invoke_arn" { type = string }
+variable "deactivate_store_function_name" { type = string }
