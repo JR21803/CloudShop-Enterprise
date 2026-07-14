@@ -563,3 +563,137 @@ resource "aws_lambda_function" "clear_cart" {
   handler          = "index.handler"
   role             = var.lambda_role_arn
 }
+
+# ============================================================
+# ORDERS
+# ============================================================
+
+data "archive_file" "create_order" {
+  type        = "zip"
+  source_dir  = "${path.root}/lambdas/orders/createOrder"
+  output_path = "${path.root}/lambdas/orders/createOrder.zip"
+}
+
+resource "aws_lambda_function" "create_order" {
+  function_name    = "createOrder"
+  filename         = data.archive_file.create_order.output_path
+  source_code_hash = data.archive_file.create_order.output_base64sha256
+  runtime          = "nodejs20.x"
+  handler          = "index.handler"
+  role             = var.lambda_role_arn
+  environment {
+    variables = { EVENT_BUS_NAME = "cloudshop-events" }
+  }
+}
+
+data "archive_file" "get_orders" {
+  type        = "zip"
+  source_dir  = "${path.root}/lambdas/orders/getOrders"
+  output_path = "${path.root}/lambdas/orders/getOrders.zip"
+}
+
+resource "aws_lambda_function" "get_orders" {
+  function_name    = "getOrders"
+  filename         = data.archive_file.get_orders.output_path
+  source_code_hash = data.archive_file.get_orders.output_base64sha256
+  runtime          = "nodejs20.x"
+  handler          = "index.handler"
+  role             = var.lambda_role_arn
+}
+
+data "archive_file" "get_order_by_id" {
+  type        = "zip"
+  source_dir  = "${path.root}/lambdas/orders/getOrderById"
+  output_path = "${path.root}/lambdas/orders/getOrderById.zip"
+}
+
+resource "aws_lambda_function" "get_order_by_id" {
+  function_name    = "getOrderById"
+  filename         = data.archive_file.get_order_by_id.output_path
+  source_code_hash = data.archive_file.get_order_by_id.output_base64sha256
+  runtime          = "nodejs20.x"
+  handler          = "index.handler"
+  role             = var.lambda_role_arn
+}
+
+data "archive_file" "update_order_status" {
+  type        = "zip"
+  source_dir  = "${path.root}/lambdas/orders/updateOrderStatus"
+  output_path = "${path.root}/lambdas/orders/updateOrderStatus.zip"
+}
+
+resource "aws_lambda_function" "update_order_status" {
+  function_name    = "updateOrderStatus"
+  filename         = data.archive_file.update_order_status.output_path
+  source_code_hash = data.archive_file.update_order_status.output_base64sha256
+  runtime          = "nodejs20.x"
+  handler          = "index.handler"
+  role             = var.lambda_role_arn
+}
+
+data "archive_file" "cancel_order" {
+  type        = "zip"
+  source_dir  = "${path.root}/lambdas/orders/cancelOrder"
+  output_path = "${path.root}/lambdas/orders/cancelOrder.zip"
+}
+
+resource "aws_lambda_function" "cancel_order" {
+  function_name    = "cancelOrder"
+  filename         = data.archive_file.cancel_order.output_path
+  source_code_hash = data.archive_file.cancel_order.output_base64sha256
+  runtime          = "nodejs20.x"
+  handler          = "index.handler"
+  role             = var.lambda_role_arn
+}
+
+# ============================================================
+# AUDIT & NOTIFICATIONS
+# ============================================================
+
+data "archive_file" "get_audit" {
+  type        = "zip"
+  source_dir  = "${path.root}/lambdas/audit/getAudit"
+  output_path = "${path.root}/lambdas/audit/getAudit.zip"
+}
+
+resource "aws_lambda_function" "get_audit" {
+  function_name    = "getAudit"
+  filename         = data.archive_file.get_audit.output_path
+  source_code_hash = data.archive_file.get_audit.output_base64sha256
+  runtime          = "nodejs20.x"
+  handler          = "index.handler"
+  role             = var.lambda_role_arn
+}
+
+data "archive_file" "process_audit_event" {
+  type        = "zip"
+  source_dir  = "${path.root}/lambdas/audit/processAuditEvent"
+  output_path = "${path.root}/lambdas/audit/processAuditEvent.zip"
+}
+
+resource "aws_lambda_function" "process_audit_event" {
+  function_name    = "processAuditEvent"
+  filename         = data.archive_file.process_audit_event.output_path
+  source_code_hash = data.archive_file.process_audit_event.output_base64sha256
+  runtime          = "nodejs20.x"
+  handler          = "index.handler"
+  role             = var.lambda_role_arn
+}
+
+data "archive_file" "send_email" {
+  type        = "zip"
+  source_dir  = "${path.root}/lambdas/notifications/sendEmail"
+  output_path = "${path.root}/lambdas/notifications/sendEmail.zip"
+}
+
+resource "aws_lambda_function" "send_email" {
+  function_name    = "sendEmail"
+  filename         = data.archive_file.send_email.output_path
+  source_code_hash = data.archive_file.send_email.output_base64sha256
+  runtime          = "nodejs20.x"
+  handler          = "index.handler"
+  role             = var.lambda_role_arn
+  environment {
+    variables = { SES_FROM_EMAIL = var.ses_from_email }
+  }
+}

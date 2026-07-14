@@ -185,3 +185,23 @@ output "clear_cart_invoke_arn" {
 output "clear_cart_function_name" {
   value = aws_lambda_function.clear_cart.function_name
 }
+
+# Orders Outputs
+output "create_order_invoke_arn"         { value = aws_lambda_function.create_order.invoke_arn }
+output "create_order_function_name"      { value = aws_lambda_function.create_order.function_name }
+output "get_orders_invoke_arn"           { value = aws_lambda_function.get_orders.invoke_arn }
+output "get_orders_function_name"        { value = aws_lambda_function.get_orders.function_name }
+output "get_order_by_id_invoke_arn"      { value = aws_lambda_function.get_order_by_id.invoke_arn }
+output "get_order_by_id_function_name"   { value = aws_lambda_function.get_order_by_id.function_name }
+output "update_order_status_invoke_arn"  { value = aws_lambda_function.update_order_status.invoke_arn }
+output "update_order_status_function_name" { value = aws_lambda_function.update_order_status.function_name }
+output "cancel_order_invoke_arn"         { value = aws_lambda_function.cancel_order.invoke_arn }
+output "cancel_order_function_name"      { value = aws_lambda_function.cancel_order.function_name }
+
+# Audit & Notifications Outputs
+output "get_audit_invoke_arn"               { value = aws_lambda_function.get_audit.invoke_arn }
+output "get_audit_function_name"            { value = aws_lambda_function.get_audit.function_name }
+output "process_audit_event_arn"            { value = aws_lambda_function.process_audit_event.arn }
+output "process_audit_event_function_name"  { value = aws_lambda_function.process_audit_event.function_name }
+output "send_email_arn"                     { value = aws_lambda_function.send_email.arn }
+output "send_email_function_name"           { value = aws_lambda_function.send_email.function_name }
