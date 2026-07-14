@@ -365,7 +365,7 @@ export default function Storefront() {
 
                         <div style={styles.productFooter}>
                           <div style={styles.productPrice}>
-                            ${product.price.toLocaleString("es-MX", { minimumFractionDigits: 2 })}
+                            ${product.price.toLocaleString("en-US", { minimumFractionDigits: 2 })}
                           </div>
                           <button
                             onClick={() => addToCart(product)}
@@ -400,7 +400,7 @@ export default function Storefront() {
                         <div>
                           <h4 style={styles.orderIdText}>Pedido #{order.orderId.substring(0, 10).toUpperCase()}</h4>
                           <span style={styles.orderDate}>
-                            {new Date(order.createdAt).toLocaleDateString("es-MX", {
+                            {new Date(order.createdAt).toLocaleDateString("es", {
                               year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit"
                             })}
                           </span>
@@ -425,7 +425,7 @@ export default function Storefront() {
                         {order.items.map((item, idx) => (
                           <div key={idx} style={styles.orderItemRow}>
                             <span>{item.name} <span style={{ color: "var(--text-muted)" }}>x{item.quantity}</span></span>
-                            <span>${(item.price * item.quantity).toLocaleString("es-MX", { minimumFractionDigits: 2 })}</span>
+                            <span>${(item.price * item.quantity).toLocaleString("en-US", { minimumFractionDigits: 2 })}</span>
                           </div>
                         ))}
                       </div>
@@ -433,7 +433,7 @@ export default function Storefront() {
                       {/* Footer */}
                       <div style={styles.orderFooter}>
                         <div style={styles.orderTotal}>
-                          Total: <strong style={{ color: "var(--accent-cyan)" }}>${order.total.toLocaleString("es-MX", { minimumFractionDigits: 2 })}</strong>
+                          Total: <strong style={{ color: "var(--accent-cyan)" }}>${order.total.toLocaleString("en-US", { minimumFractionDigits: 2 })}</strong>
                         </div>
                         {order.status === "Pendiente" && (
                           <button 
@@ -485,7 +485,7 @@ export default function Storefront() {
 
                     <div style={styles.cartItemFooter}>
                       <span style={styles.cartItemPrice}>
-                        ${(item.price * item.quantity).toLocaleString("es-MX", { minimumFractionDigits: 2 })}
+                        ${(item.price * item.quantity).toLocaleString("en-US", { minimumFractionDigits: 2 })}
                       </span>
                       <div style={styles.quantityControls}>
                         <button onClick={() => updateQuantity(item.productId, -1)} style={styles.qtyBtn}>
@@ -508,7 +508,7 @@ export default function Storefront() {
               <div style={styles.cartTotalRow}>
                 <span>Subtotal:</span>
                 <span style={styles.cartTotalAmount}>
-                  ${cart.reduce((sum, item) => sum + (item.price * item.quantity), 0).toLocaleString("es-MX", { minimumFractionDigits: 2 })}
+                  ${cart.reduce((sum, item) => sum + (item.price * item.quantity), 0).toLocaleString("en-US", { minimumFractionDigits: 2 })}
                 </span>
               </div>
 

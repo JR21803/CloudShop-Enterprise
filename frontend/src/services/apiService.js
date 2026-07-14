@@ -13,40 +13,48 @@ let forceMock = getForceMockPreference();
 
 // DB LOCAL MOCK SEEDS
 const defaultProducts = [
-  { productId: "p1", name: 'Smart TV 55" 4K UHD', description: 'Televisor inteligente de 55 pulgadas con resolución 4K y sonido envolvente.', category: "Electrónica", price: 12999, stock: 0, code: "TV-55-4K", shop: "s3" },
-  { productId: "p2", name: "Auriculares Bluetooth Pro", description: 'Auriculares inalámbricos con cancelación activa de ruido.', category: "Audio", price: 2499, stock: 0, code: "AUD-NOISE-X", shop: "s3" },
-  { productId: "p3", name: "Cafetera Express Automática", description: 'Cafetera espresso automática con espumador de leche.', category: "Hogar", price: 5499, stock: 0, code: "CAF-EXP-A", shop: "s3" },
-  { productId: "p4", name: "Teclado Mecánico RGB", description: 'Teclado mecánico para gaming con retroiluminación RGB.', category: "Accesorios", price: 1199, stock: 0, code: "KEY-MECH-RGB", shop: "s3" },
-  { productId: "p5", name: 'Laptop Pro 16"', description: 'Laptop de alto rendimiento para desarrolladores y creadores.', category: "Electrónica", price: 34999, stock: 15, code: "LAP-16-PRO", shop: "s3" },
-  { productId: "p6", name: "Smartphone X1 Pro", description: 'Teléfono de última generación con cámara de 108MP.', category: "Electrónica", price: 18999, stock: 8, code: "PH-X1-PRO", shop: "s1" },
-  { productId: "p7", name: "Consola NextGen 1TB", description: 'Consola de videojuegos con almacenamiento de 1TB SSD.', category: "Electrónica", price: 9999, stock: 20, code: "CONS-NG-1T", shop: "s2" },
-  { productId: "p8", name: "Reloj Inteligente Fit", description: 'Smartwatch deportivo con sensor de ritmo cardíaco.', category: "Accesorios", price: 3199, stock: 45, code: "SW-FIT", shop: "s4" },
-  { productId: "p9", name: "Silla Gamer Ergonómica", description: 'Silla ergonómica de cuero con reposabrazos ajustables.', category: "Accesorios", price: 4299, stock: 12, code: "CH-GAMER", shop: "s5" }
+  { productId: "p1", name: 'Smart TV 55" 4K UHD', description: 'Televisor inteligente de 55 pulgadas con resolución 4K y sonido envolvente.', category: "Electrónica", price: 599, stock: 0, code: "TV-55-4K", shop: "s3" },
+  { productId: "p2", name: "Auriculares Bluetooth Pro", description: 'Auriculares inalámbricos con cancelación activa de ruido.', category: "Audio", price: 129, stock: 0, code: "AUD-NOISE-X", shop: "s3" },
+  { productId: "p3", name: "Cafetera Express Automática", description: 'Cafetera espresso automática con espumador de leche.', category: "Hogar", price: 299, stock: 0, code: "CAF-EXP-A", shop: "s3" },
+  { productId: "p4", name: "Teclado Mecánico RGB", description: 'Teclado mecánico para gaming con retroiluminación RGB.', category: "Accesorios", price: 79, stock: 0, code: "KEY-MECH-RGB", shop: "s3" },
+  { productId: "p5", name: 'Laptop Pro 16"', description: 'Laptop de alto rendimiento para desarrolladores y creadores.', category: "Electrónica", price: 1499, stock: 15, code: "LAP-16-PRO", shop: "s3" },
+  { productId: "p6", name: "Smartphone X1 Pro", description: 'Teléfono de última generación con cámara de 108MP.', category: "Electrónica", price: 899, stock: 8, code: "PH-X1-PRO", shop: "s1" },
+  { productId: "p7", name: "Consola NextGen 1TB", description: 'Consola de videojuegos con almacenamiento de 1TB SSD.', category: "Electrónica", price: 499, stock: 20, code: "CONS-NG-1T", shop: "s2" },
+  { productId: "p8", name: "Reloj Inteligente Fit", description: 'Smartwatch deportivo con sensor de ritmo cardíaco.', category: "Accesorios", price: 149, stock: 45, code: "SW-FIT", shop: "s4" },
+  { productId: "p9", name: "Silla Gamer Ergonómica", description: 'Silla ergonómica de cuero con reposabrazos ajustables.', category: "Accesorios", price: 249, stock: 12, code: "CH-GAMER", shop: "s5" }
 ];
 
 const defaultStores = [
-  { storeId: "s1", name: "Sucursal Norte CDMX", address: "Av. Insurgentes Sur 1234, CDMX", phone: "555-0192-348", status: "ACTIVE" },
-  { storeId: "s2", name: "Sucursal Sur Guadalajara", address: "Av. Patria 456, Guadalajara", phone: "333-8271-923", status: "ACTIVE" },
+  { storeId: "s1", name: "Sucursal Nebula", address: "Av. Cosmos 101, Sector Alpha", phone: "555-0192-348", status: "ACTIVE" },
+  { storeId: "s2", name: "Sucursal Nova", address: "Calle de las Estrellas 456, Sector Beta", phone: "333-8271-923", status: "ACTIVE" },
   { storeId: "s3", name: "Tienda Online (E-Commerce)", address: "Virtual / CloudShop Cloud", phone: "800-CLOUD-SH", status: "ACTIVE" },
-  { storeId: "s4", name: "Sucursal Monterrey Centro", address: "Calle Morelos 789, Monterrey", phone: "818-3721-987", status: "ACTIVE" },
-  { storeId: "s5", name: "Sucursal Querétaro", address: "Bernardo Quintana 101, Querétaro", phone: "442-9182-736", status: "ACTIVE" }
+  { storeId: "s4", name: "Sucursal Apex", address: "Av. Andrómeda 789, Sector Gamma", phone: "818-3721-987", status: "ACTIVE" },
+  { storeId: "s5", name: "Sucursal Horizon", address: "Ruta Galáctica km 12, Sector Delta", phone: "442-9182-736", status: "ACTIVE" }
 ];
 
 const defaultOrders = [
-  { orderId: "o1", customerEmail: "sophia.rod@gmail.com", storeId: "s3", items: [{ productId: "p5", name: 'Laptop Pro 16"', price: 34999, quantity: 1 }], total: 34999, status: "Entregado", createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString() },
-  { orderId: "o2", customerEmail: "liam.b@gmail.com", storeId: "s3", items: [{ productId: "p6", name: "Smartphone X1 Pro", price: 18999, quantity: 1 }], total: 18999, status: "Enviado", createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString() },
-  { orderId: "o3", customerEmail: "isabella.s@yahoo.com", storeId: "s1", items: [{ productId: "p8", name: "Reloj Inteligente Fit", price: 3199, quantity: 2 }], total: 6398, status: "Pendiente", createdAt: new Date().toISOString() }
+  { orderId: "o1", customerEmail: "sophia.rod@gmail.com", storeId: "s3", items: [{ productId: "p5", name: 'Laptop Pro 16"', price: 1499, quantity: 1 }], total: 1499, status: "Entregado", createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString() },
+  { orderId: "o2", customerEmail: "liam.b@gmail.com", storeId: "s3", items: [{ productId: "p6", name: "Smartphone X1 Pro", price: 899, quantity: 1 }], total: 899, status: "Enviado", createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString() },
+  { orderId: "o3", customerEmail: "isabella.s@yahoo.com", storeId: "s1", items: [{ productId: "p8", name: "Reloj Inteligente Fit", price: 149, quantity: 2 }], total: 298, status: "Pendiente", createdAt: new Date().toISOString() }
 ];
 
-// Initialize Mock databases in localStorage if empty
-if (!localStorage.getItem("cloudshop_mock_products")) {
+// Initialize Mock databases in localStorage if empty or outdated
+const MOCK_VERSION = "v2_usd_stores";
+if (localStorage.getItem("cloudshop_mock_version") !== MOCK_VERSION) {
+  localStorage.setItem("cloudshop_mock_version", MOCK_VERSION);
   localStorage.setItem("cloudshop_mock_products", JSON.stringify(defaultProducts));
-}
-if (!localStorage.getItem("cloudshop_mock_stores")) {
   localStorage.setItem("cloudshop_mock_stores", JSON.stringify(defaultStores));
-}
-if (!localStorage.getItem("cloudshop_mock_orders")) {
   localStorage.setItem("cloudshop_mock_orders", JSON.stringify(defaultOrders));
+} else {
+  if (!localStorage.getItem("cloudshop_mock_products")) {
+    localStorage.setItem("cloudshop_mock_products", JSON.stringify(defaultProducts));
+  }
+  if (!localStorage.getItem("cloudshop_mock_stores")) {
+    localStorage.setItem("cloudshop_mock_stores", JSON.stringify(defaultStores));
+  }
+  if (!localStorage.getItem("cloudshop_mock_orders")) {
+    localStorage.setItem("cloudshop_mock_orders", JSON.stringify(defaultOrders));
+  }
 }
 
 // Helpers Local Storage
@@ -89,8 +97,8 @@ const generateMockDashboardData = () => {
       revenue: (15 - idx * 2) * p.price
     })),
     topCustomers: [
-      { customerId: "c1", name: "Sophia Rodriguez", email: "sophia.rod@gmail.com", totalSpent: 15420.50, ordersCount: 12, tier: "VIP" },
-      { customerId: "c2", name: "Liam Bennett", email: "liam.b@gmail.com", totalSpent: 12850.00, ordersCount: 9, tier: "VIP" }
+      { customerId: "c1", name: "Sophia Rodriguez", email: "sophia.rod@gmail.com", totalSpent: 1542.50, ordersCount: 12, tier: "VIP" },
+      { customerId: "c2", name: "Liam Bennett", email: "liam.b@gmail.com", totalSpent: 1285.00, ordersCount: 9, tier: "VIP" }
     ],
     salesByStore: stores.map((s, idx) => ({
       storeId: s.storeId,

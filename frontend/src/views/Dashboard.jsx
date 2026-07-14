@@ -437,7 +437,7 @@ export default function Dashboard() {
                     <div style={styles.kpiHeader}>
                       <div>
                         <div style={styles.kpiLabel}>Ventas Totales</div>
-                        <div style={styles.kpiValue}>${totalSales.totalSales.toLocaleString("es-MX", { minimumFractionDigits: 2 })}</div>
+                        <div style={styles.kpiValue}>${totalSales.totalSales.toLocaleString("en-US", { minimumFractionDigits: 2 })}</div>
                       </div>
                       <div style={{ ...styles.kpiIconWrapper, backgroundColor: "var(--accent-cyan-glow)", color: "var(--accent-cyan)" }}>
                         <TrendingUp size={24} />
@@ -504,7 +504,7 @@ export default function Dashboard() {
                             <tr key={store.storeId}>
                               <td>{store.name}</td>
                               <td style={{ textAlign: "right" }}>{store.orders}</td>
-                              <td style={{ textAlign: "right" }}>${store.sales.toLocaleString("es-MX", { minimumFractionDigits: 2 })}</td>
+                              <td style={{ textAlign: "right" }}>${store.sales.toLocaleString("en-US", { minimumFractionDigits: 2 })}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -530,7 +530,7 @@ export default function Dashboard() {
                           <tr key={prod.productId}>
                             <td>{prod.name}</td>
                             <td style={{ textAlign: "right" }}>{prod.salesCount} units</td>
-                            <td style={{ textAlign: "right" }}>${prod.revenue.toLocaleString("es-MX", { minimumFractionDigits: 2 })}</td>
+                            <td style={{ textAlign: "right" }}>${prod.revenue.toLocaleString("en-US", { minimumFractionDigits: 2 })}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -597,7 +597,7 @@ export default function Dashboard() {
                         <input type="text" placeholder="Ej. Electrónica" value={productForm.category} onChange={e => setProductForm({ ...productForm, category: e.target.value })} style={styles.formInput} />
                       </div>
                       <div style={styles.formGroup}>
-                        <label>Precio ($MXN) *</label>
+                        <label>Precio ($USD) *</label>
                         <input type="number" min="0" step="0.01" value={productForm.price} onChange={e => setProductForm({ ...productForm, price: e.target.value })} style={styles.formInput} />
                       </div>
                       <div style={styles.formGroup}>
@@ -647,7 +647,7 @@ export default function Dashboard() {
                             <td>{prod.code || prod.productId.substring(0, 8).toUpperCase()}</td>
                             <td><strong>{prod.name}</strong></td>
                             <td><span className="badge-neon badge-cyan">{prod.category}</span></td>
-                            <td style={{ textAlign: "right" }}>${prod.price.toLocaleString("es-MX", { minimumFractionDigits: 2 })}</td>
+                            <td style={{ textAlign: "right" }}>${prod.price.toLocaleString("en-US", { minimumFractionDigits: 2 })}</td>
                             <td style={{ textAlign: "right" }}>{prod.stock}</td>
                             <td>{storesList.find(s => s.storeId === prod.shop)?.name || "Tienda Online"}</td>
                             <td style={styles.actionButtonsCol}>
@@ -690,7 +690,7 @@ export default function Dashboard() {
                       </div>
                       <div style={{ ...styles.formGroup, gridColumn: "1 / -1" }}>
                         <label>Dirección Física *</label>
-                        <input type="text" placeholder="Ej. Av. Insurgentes Sur 456" value={storeForm.address} onChange={e => setStoreForm({ ...storeForm, address: e.target.value })} style={styles.formInput} />
+                        <input type="text" placeholder="Ej. Av. Central 456" value={storeForm.address} onChange={e => setStoreForm({ ...storeForm, address: e.target.value })} style={styles.formInput} />
                       </div>
                     </div>
                     <div style={styles.formActions}>
@@ -822,7 +822,7 @@ export default function Dashboard() {
                         <th>Cliente Email</th>
                         <th>Fecha</th>
                         <th>Productos / Unidades</th>
-                        <th style={{ textAlign: "right" }}>Total ($MXN)</th>
+                        <th style={{ textAlign: "right" }}>Total ($USD)</th>
                         <th>Estado Actual</th>
                         <th style={{ textAlign: "center" }}>Cambiar Estado</th>
                       </tr>
@@ -843,7 +843,7 @@ export default function Dashboard() {
                                 ))}
                               </div>
                             </td>
-                            <td style={{ textAlign: "right" }}><strong>${order.total.toLocaleString("es-MX", { minimumFractionDigits: 2 })}</strong></td>
+                            <td style={{ textAlign: "right" }}><strong>${order.total.toLocaleString("en-US", { minimumFractionDigits: 2 })}</strong></td>
                             <td>
                               <span className={`badge-neon ${
                                 order.status === "Entregado" ? "badge-green" :
