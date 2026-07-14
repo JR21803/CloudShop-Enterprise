@@ -11,29 +11,71 @@ const corsHeaders = {
 };
 
 exports.handler = async (event) => {
-    const storeId = event.pathParameters.id;
-    const body = JSON.parse(event.body);
+    try {
+        const storeId = event.pathParameters?.id;
+        if (!storeId) {
+            return {
+                statusCode: 400,
+                headers: corsHeaders,
+                body: JSON.stringify({ message: "Missing store id" })
+            };
+        }
 
-    const result = await docClient.send(
-        new UpdateCommand({
+        const body = JSON.parse(event.body);
+        
+        let updateExpression = "set ";
+        let expressionAttributeValues = {};
+        let expressionAttributeNames = {};
+
+        if (body.name) {
+            updateExpression += "#n = :name, ";
+            expressionAttributeValues[":name"] = body.name;
+            expressionAttributeNames["#n"] = "name";
+        }
+        if (body.address) {
+            updateExpression += "address = :address, ";
+            expressionAttributeValues[":address"] = body.address;
+        }
+        if (body.phone) {
+            updateExpression += "phone = :phone, ";
+            expressionAttributeValues[":phone"] = body.phone;
+        }
+
+        if (Object.keys(expressionAttributeValues).length === 0) {
+            return {
+                statusCode: 400,
+                headers: corsHeaders,
+                body: JSON.stringify({ message: "No fields to update" })
+            };
+        }
+
+        updateExpression = updateExpression.slice(0, -2); // Remove trailing comma and space
+
+        const commandParams = {
             TableName: "Stores",
             Key: { storeId },
-            UpdateExpression: "SET #n = :name, address = :address, phone = :phone",
-            ExpressionAttributeNames: {
-                "#n": "name"
-            },
-            ExpressionAttributeValues: {
-                ":name": body.name,
-                ":address": body.address,
-                ":phone": body.phone
-            },
+            UpdateExpression: updateExpression,
+            ExpressionAttributeValues: expressionAttributeValues,
             ReturnValues: "ALL_NEW"
-        })
-    );
+        };
+        
+        if (Object.keys(expressionAttributeNames).length > 0) {
+            commandParams.ExpressionAttributeNames = expressionAttributeNames;
+        }
 
-    return {
-        statusCode: 200,
-        headers: corsHeaders,
-        body: JSON.stringify(result.Attributes)
-    };
+        const { Attributes } = await docClient.send(new UpdateCommand(commandParams));
+
+        return {
+            statusCode: 200,
+            headers: corsHeaders,
+            body: JSON.stringify(Attributes)
+        };
+    } catch (error) {
+        console.error(error);
+        return {
+            statusCode: 500,
+            headers: corsHeaders,
+            body: JSON.stringify({ message: "Error updating store" })
+        };
+    }
 };

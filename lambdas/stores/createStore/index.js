@@ -1,6 +1,6 @@
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
 const { DynamoDBDocumentClient, PutCommand } = require("@aws-sdk/lib-dynamodb");
-const crypto = require("crypto");
+const { v4: uuidv4 } = require("uuid");
 
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
@@ -12,25 +12,39 @@ const corsHeaders = {
 };
 
 exports.handler = async (event) => {
-    const body = JSON.parse(event.body);
-    const store = {
-        storeId: crypto.randomUUID(),
-        name: body.name,
-        address: body.address,
-        phone: body.phone,
-        status: "ACTIVE"
-    };
+    try {
+        const body = JSON.parse(event.body);
+        
+        const claims = event.requestContext?.authorizer?.claims;
+        const ownerId = claims ? claims.sub : "unknown";
 
-    await docClient.send(
-        new PutCommand({
-            TableName: "Stores",
-            Item: store
-        })
-    );
+        const store = {
+            storeId: uuidv4(),
+            name: body.name,
+            address: body.address,
+            phone: body.phone,
+            status: "ACTIVE",
+            ownerId: ownerId
+        };
 
-    return {
-        statusCode: 201,
-        headers: corsHeaders,
-        body: JSON.stringify(store)
-    };
+        await docClient.send(
+            new PutCommand({
+                TableName: "Stores",
+                Item: store
+            })
+        );
+
+        return {
+            statusCode: 201,
+            headers: corsHeaders,
+            body: JSON.stringify(store)
+        };
+    } catch (error) {
+        console.error(error);
+        return {
+            statusCode: 500,
+            headers: corsHeaders,
+            body: JSON.stringify({ message: "Error creating store" })
+        };
+    }
 };

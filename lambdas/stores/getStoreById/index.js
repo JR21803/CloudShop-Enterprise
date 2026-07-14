@@ -11,26 +11,43 @@ const corsHeaders = {
 };
 
 exports.handler = async (event) => {
-    const storeId = event.pathParameters.id;
+    try {
+        const storeId = event.pathParameters?.id;
 
-    const result = await docClient.send(
-        new GetCommand({
-            TableName: "Stores",
-            Key: { storeId }
-        })
-    );
+        if (!storeId) {
+            return {
+                statusCode: 400,
+                headers: corsHeaders,
+                body: JSON.stringify({ message: "Missing store id" })
+            };
+        }
 
-    if (!result.Item) {
+        const { Item } = await docClient.send(
+            new GetCommand({
+                TableName: "Stores",
+                Key: { storeId }
+            })
+        );
+
+        if (!Item) {
+            return {
+                statusCode: 404,
+                headers: corsHeaders,
+                body: JSON.stringify({ message: "Store not found" })
+            };
+        }
+
         return {
-            statusCode: 404,
+            statusCode: 200,
             headers: corsHeaders,
-            body: JSON.stringify({ message: "Store not found" })
+            body: JSON.stringify(Item)
+        };
+    } catch (error) {
+        console.error(error);
+        return {
+            statusCode: 500,
+            headers: corsHeaders,
+            body: JSON.stringify({ message: "Error getting store" })
         };
     }
-
-    return {
-        statusCode: 200,
-        headers: corsHeaders,
-        body: JSON.stringify(result.Item)
-    };
 };

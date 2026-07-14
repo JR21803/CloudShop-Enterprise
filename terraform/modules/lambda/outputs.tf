@@ -154,3 +154,34 @@ output "deactivate_store_function_name" {
   value = aws_lambda_function.deactivate_store.function_name
 }
 
+# Cart Outputs
+output "get_cart_invoke_arn" {
+  value = aws_lambda_function.get_cart.invoke_arn
+}
+output "get_cart_function_name" {
+  value = aws_lambda_function.get_cart.function_name
+}
+output "add_product_invoke_arn" {
+  value = aws_lambda_function.add_product.invoke_arn
+}
+output "add_product_function_name" {
+  value = aws_lambda_function.add_product.function_name
+}
+output "update_quantity_invoke_arn" {
+  value = aws_lambda_function.update_quantity.invoke_arn
+}
+output "update_quantity_function_name" {
+  value = aws_lambda_function.update_quantity.function_name
+}
+output "remove_product_invoke_arn" {
+  value = aws_lambda_function.remove_product.invoke_arn
+}
+output "remove_product_function_name" {
+  value = aws_lambda_function.remove_product.function_name
+}
+output "clear_cart_invoke_arn" {
+  value = aws_lambda_function.clear_cart.invoke_arn
+}
+output "clear_cart_function_name" {
+  value = aws_lambda_function.clear_cart.function_name
+}

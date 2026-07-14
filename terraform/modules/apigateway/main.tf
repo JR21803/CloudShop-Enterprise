@@ -215,7 +215,13 @@ resource "aws_api_gateway_deployment" "deployment" {
     aws_api_gateway_integration.create_store,
     aws_api_gateway_integration.get_store_by_id,
     aws_api_gateway_integration.update_store,
-    aws_api_gateway_integration.delete_store
+    aws_api_gateway_integration.delete_store,
+
+    aws_api_gateway_integration.get_cart,
+    aws_api_gateway_integration.add_product,
+    aws_api_gateway_integration.update_quantity,
+    aws_api_gateway_integration.remove_product,
+    aws_api_gateway_integration.clear_cart
 
   ]
 
@@ -795,4 +801,160 @@ resource "aws_lambda_permission" "dashboard_sales_by_store" {
 
   source_arn = "${aws_api_gateway_rest_api.cloudshop_api.execution_arn}/*/*"
 
+}
+# ==========================================
+# CART ENDPOINTS
+# ==========================================
+
+resource "aws_api_gateway_resource" "cart" {
+  rest_api_id = aws_api_gateway_rest_api.cloudshop_api.id
+  parent_id   = aws_api_gateway_rest_api.cloudshop_api.root_resource_id
+  path_part   = "cart"
+}
+
+resource "aws_api_gateway_resource" "cart_items" {
+  rest_api_id = aws_api_gateway_rest_api.cloudshop_api.id
+  parent_id   = aws_api_gateway_resource.cart.id
+  path_part   = "items"
+}
+
+resource "aws_api_gateway_resource" "cart_product_id" {
+  rest_api_id = aws_api_gateway_rest_api.cloudshop_api.id
+  parent_id   = aws_api_gateway_resource.cart_items.id
+  path_part   = "{productId}"
+}
+
+# GET /cart
+resource "aws_api_gateway_method" "get_cart" {
+  rest_api_id      = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id      = aws_api_gateway_resource.cart.id
+  http_method      = "GET"
+  authorization    = "COGNITO_USER_POOLS"
+  authorizer_id    = aws_api_gateway_authorizer.cognito.id
+  api_key_required = true
+}
+
+resource "aws_api_gateway_integration" "get_cart" {
+  rest_api_id             = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id             = aws_api_gateway_resource.cart.id
+  http_method             = aws_api_gateway_method.get_cart.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = var.get_cart_invoke_arn
+}
+
+resource "aws_lambda_permission" "get_cart" {
+  statement_id  = "AllowExecutionGetCart"
+  action        = "lambda:InvokeFunction"
+  function_name = var.get_cart_function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_api_gateway_rest_api.cloudshop_api.execution_arn}/*/*"
+}
+
+# DELETE /cart (clearCart)
+resource "aws_api_gateway_method" "clear_cart" {
+  rest_api_id      = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id      = aws_api_gateway_resource.cart.id
+  http_method      = "DELETE"
+  authorization    = "COGNITO_USER_POOLS"
+  authorizer_id    = aws_api_gateway_authorizer.cognito.id
+  api_key_required = true
+}
+
+resource "aws_api_gateway_integration" "clear_cart" {
+  rest_api_id             = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id             = aws_api_gateway_resource.cart.id
+  http_method             = aws_api_gateway_method.clear_cart.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = var.clear_cart_invoke_arn
+}
+
+resource "aws_lambda_permission" "clear_cart" {
+  statement_id  = "AllowExecutionClearCart"
+  action        = "lambda:InvokeFunction"
+  function_name = var.clear_cart_function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_api_gateway_rest_api.cloudshop_api.execution_arn}/*/*"
+}
+
+# POST /cart/items (addProduct)
+resource "aws_api_gateway_method" "add_product" {
+  rest_api_id      = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id      = aws_api_gateway_resource.cart_items.id
+  http_method      = "POST"
+  authorization    = "COGNITO_USER_POOLS"
+  authorizer_id    = aws_api_gateway_authorizer.cognito.id
+  api_key_required = true
+}
+
+resource "aws_api_gateway_integration" "add_product" {
+  rest_api_id             = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id             = aws_api_gateway_resource.cart_items.id
+  http_method             = aws_api_gateway_method.add_product.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = var.add_product_invoke_arn
+}
+
+resource "aws_lambda_permission" "add_product" {
+  statement_id  = "AllowExecutionAddProduct"
+  action        = "lambda:InvokeFunction"
+  function_name = var.add_product_function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_api_gateway_rest_api.cloudshop_api.execution_arn}/*/*"
+}
+
+# PUT /cart/items/{productId} (updateQuantity)
+resource "aws_api_gateway_method" "update_quantity" {
+  rest_api_id      = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id      = aws_api_gateway_resource.cart_product_id.id
+  http_method      = "PUT"
+  authorization    = "COGNITO_USER_POOLS"
+  authorizer_id    = aws_api_gateway_authorizer.cognito.id
+  api_key_required = true
+}
+
+resource "aws_api_gateway_integration" "update_quantity" {
+  rest_api_id             = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id             = aws_api_gateway_resource.cart_product_id.id
+  http_method             = aws_api_gateway_method.update_quantity.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = var.update_quantity_invoke_arn
+}
+
+resource "aws_lambda_permission" "update_quantity" {
+  statement_id  = "AllowExecutionUpdateQuantity"
+  action        = "lambda:InvokeFunction"
+  function_name = var.update_quantity_function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_api_gateway_rest_api.cloudshop_api.execution_arn}/*/*"
+}
+
+# DELETE /cart/items/{productId} (removeProduct)
+resource "aws_api_gateway_method" "remove_product" {
+  rest_api_id      = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id      = aws_api_gateway_resource.cart_product_id.id
+  http_method      = "DELETE"
+  authorization    = "COGNITO_USER_POOLS"
+  authorizer_id    = aws_api_gateway_authorizer.cognito.id
+  api_key_required = true
+}
+
+resource "aws_api_gateway_integration" "remove_product" {
+  rest_api_id             = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id             = aws_api_gateway_resource.cart_product_id.id
+  http_method             = aws_api_gateway_method.remove_product.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = var.remove_product_invoke_arn
+}
+
+resource "aws_lambda_permission" "remove_product" {
+  statement_id  = "AllowExecutionRemoveProduct"
+  action        = "lambda:InvokeFunction"
+  function_name = var.remove_product_function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_api_gateway_rest_api.cloudshop_api.execution_arn}/*/*"
 }

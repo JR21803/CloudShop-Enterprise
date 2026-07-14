@@ -11,25 +11,43 @@ const corsHeaders = {
 };
 
 exports.handler = async (event) => {
-    const storeId = event.pathParameters.id;
+    try {
+        const storeId = event.pathParameters?.id;
 
-    await docClient.send(
-        new UpdateCommand({
-            TableName: "Stores",
-            Key: { storeId },
-            UpdateExpression: "SET #s = :status",
-            ExpressionAttributeNames: {
-                "#s": "status"
-            },
-            ExpressionAttributeValues: {
-                ":status": "INACTIVE"
-            }
-        })
-    );
+        if (!storeId) {
+            return {
+                statusCode: 400,
+                headers: corsHeaders,
+                body: JSON.stringify({ message: "Missing store id" })
+            };
+        }
 
-    return {
-        statusCode: 200,
-        headers: corsHeaders,
-        body: JSON.stringify({ message: "Store deactivated successfully" })
-    };
+        const { Attributes } = await docClient.send(
+            new UpdateCommand({
+                TableName: "Stores",
+                Key: { storeId },
+                UpdateExpression: "set #status = :status",
+                ExpressionAttributeNames: {
+                    "#status": "status"
+                },
+                ExpressionAttributeValues: {
+                    ":status": "INACTIVE"
+                },
+                ReturnValues: "ALL_NEW"
+            })
+        );
+
+        return {
+            statusCode: 200,
+            headers: corsHeaders,
+            body: JSON.stringify({ message: "Store deactivated", store: Attributes })
+        };
+    } catch (error) {
+        console.error(error);
+        return {
+            statusCode: 500,
+            headers: corsHeaders,
+            body: JSON.stringify({ message: "Error deactivating store" })
+        };
+    }
 };

@@ -113,3 +113,14 @@ variable "update_store_invoke_arn" { type = string }
 variable "update_store_function_name" { type = string }
 variable "deactivate_store_invoke_arn" { type = string }
 variable "deactivate_store_function_name" { type = string }
+# Cart
+variable "get_cart_invoke_arn" { type = string }
+variable "get_cart_function_name" { type = string }
+variable "add_product_invoke_arn" { type = string }
+variable "add_product_function_name" { type = string }
+variable "update_quantity_invoke_arn" { type = string }
+variable "update_quantity_function_name" { type = string }
+variable "remove_product_invoke_arn" { type = string }
+variable "remove_product_function_name" { type = string }
+variable "clear_cart_invoke_arn" { type = string }
+variable "clear_cart_function_name" { type = string }

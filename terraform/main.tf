@@ -91,6 +91,17 @@ module "apigateway" {
   deactivate_store_invoke_arn   = module.lambda.deactivate_store_invoke_arn
   deactivate_store_function_name = module.lambda.deactivate_store_function_name
 
+  # cart
+  get_cart_invoke_arn           = module.lambda.get_cart_invoke_arn
+  get_cart_function_name        = module.lambda.get_cart_function_name
+  add_product_invoke_arn        = module.lambda.add_product_invoke_arn
+  add_product_function_name     = module.lambda.add_product_function_name
+  update_quantity_invoke_arn    = module.lambda.update_quantity_invoke_arn
+  update_quantity_function_name = module.lambda.update_quantity_function_name
+  remove_product_invoke_arn     = module.lambda.remove_product_invoke_arn
+  remove_product_function_name  = module.lambda.remove_product_function_name
+  clear_cart_invoke_arn         = module.lambda.clear_cart_invoke_arn
+  clear_cart_function_name      = module.lambda.clear_cart_function_name
 }
 
 module "frontend" {

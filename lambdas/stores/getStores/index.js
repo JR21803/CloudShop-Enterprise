@@ -11,15 +11,24 @@ const corsHeaders = {
 };
 
 exports.handler = async (event) => {
-    const result = await docClient.send(
-        new ScanCommand({
-            TableName: "Stores"
-        })
-    );
+    try {
+        const { Items } = await docClient.send(
+            new ScanCommand({
+                TableName: "Stores"
+            })
+        );
 
-    return {
-        statusCode: 200,
-        headers: corsHeaders,
-        body: JSON.stringify(result.Items || [])
-    };
+        return {
+            statusCode: 200,
+            headers: corsHeaders,
+            body: JSON.stringify(Items)
+        };
+    } catch (error) {
+        console.error(error);
+        return {
+            statusCode: 500,
+            headers: corsHeaders,
+            body: JSON.stringify({ message: "Error getting stores" })
+        };
+    }
 };

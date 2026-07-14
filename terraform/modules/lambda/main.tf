@@ -489,3 +489,77 @@ resource "aws_lambda_function" "deactivate_store" {
   handler          = "index.handler"
   role             = var.lambda_role_arn
 }
+data "archive_file" "get_cart" {
+  type        = "zip"
+  source_dir  = "${path.root}/lambdas/cart/getCart"
+  output_path = "${path.root}/lambdas/cart/getCart.zip"
+}
+
+resource "aws_lambda_function" "get_cart" {
+  function_name    = "getCart"
+  filename         = data.archive_file.get_cart.output_path
+  source_code_hash = data.archive_file.get_cart.output_base64sha256
+  runtime          = "nodejs20.x"
+  handler          = "index.handler"
+  role             = var.lambda_role_arn
+}
+
+data "archive_file" "add_product" {
+  type        = "zip"
+  source_dir  = "${path.root}/lambdas/cart/addProduct"
+  output_path = "${path.root}/lambdas/cart/addProduct.zip"
+}
+
+resource "aws_lambda_function" "add_product" {
+  function_name    = "addProduct"
+  filename         = data.archive_file.add_product.output_path
+  source_code_hash = data.archive_file.add_product.output_base64sha256
+  runtime          = "nodejs20.x"
+  handler          = "index.handler"
+  role             = var.lambda_role_arn
+}
+
+data "archive_file" "update_quantity" {
+  type        = "zip"
+  source_dir  = "${path.root}/lambdas/cart/updateQuantity"
+  output_path = "${path.root}/lambdas/cart/updateQuantity.zip"
+}
+
+resource "aws_lambda_function" "update_quantity" {
+  function_name    = "updateQuantity"
+  filename         = data.archive_file.update_quantity.output_path
+  source_code_hash = data.archive_file.update_quantity.output_base64sha256
+  runtime          = "nodejs20.x"
+  handler          = "index.handler"
+  role             = var.lambda_role_arn
+}
+
+data "archive_file" "remove_product" {
+  type        = "zip"
+  source_dir  = "${path.root}/lambdas/cart/removeProduct"
+  output_path = "${path.root}/lambdas/cart/removeProduct.zip"
+}
+
+resource "aws_lambda_function" "remove_product" {
+  function_name    = "removeProduct"
+  filename         = data.archive_file.remove_product.output_path
+  source_code_hash = data.archive_file.remove_product.output_base64sha256
+  runtime          = "nodejs20.x"
+  handler          = "index.handler"
+  role             = var.lambda_role_arn
+}
+
+data "archive_file" "clear_cart" {
+  type        = "zip"
+  source_dir  = "${path.root}/lambdas/cart/clearCart"
+  output_path = "${path.root}/lambdas/cart/clearCart.zip"
+}
+
+resource "aws_lambda_function" "clear_cart" {
+  function_name    = "clearCart"
+  filename         = data.archive_file.clear_cart.output_path
+  source_code_hash = data.archive_file.clear_cart.output_base64sha256
+  runtime          = "nodejs20.x"
+  handler          = "index.handler"
+  role             = var.lambda_role_arn
+}
