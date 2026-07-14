@@ -187,9 +187,9 @@ const styles = {
   },
   logoTitle: {
     fontSize: "2.5rem",
-    background: "linear-gradient(135deg, #06b6d4 0%, #8b5cf6 100%)",
-    WebkitBackgroundClip: "text",
-    WebkitTextFillColor: "transparent",
+    color: "var(--text-primary)",
+    fontWeight: "700",
+    letterSpacing: "-0.03em",
     marginBottom: "4px",
   },
   subtitle: {

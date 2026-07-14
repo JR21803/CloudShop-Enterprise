@@ -62,6 +62,28 @@ export default function Storefront() {
       // Filter orders to show only current user's orders
       const userOrders = orderData.filter(o => o.customerEmail === session.user.email);
       setOrders(userOrders);
+
+      // Cargar carrito persistente
+      let cartData = { products: [] };
+      try {
+        cartData = await apiService.getCart();
+      } catch (cartErr) {
+        console.error("Error al cargar el carrito del backend:", cartErr);
+      }
+      
+      const backendProducts = cartData?.products || [];
+      const enrichedCart = backendProducts.map(item => {
+        const matchingProd = prodData.find(p => p.productId === item.productId);
+        return {
+          ...item,
+          name: matchingProd ? matchingProd.name : "Producto desconocido",
+          shop: matchingProd ? matchingProd.shop : "s3",
+          description: matchingProd ? matchingProd.description : "",
+          category: matchingProd ? matchingProd.category : "",
+          stock: matchingProd ? matchingProd.stock : 999
+        };
+      });
+      setCart(enrichedCart);
     } catch (err) {
       console.error(err);
       setError(err.message || "Error al cargar datos de CloudShop.");
@@ -82,48 +104,89 @@ export default function Storefront() {
   };
 
   // Cart operations
-  const addToCart = (product) => {
+  const addToCart = async (product) => {
     const existing = cart.find(item => item.productId === product.productId);
     if (existing) {
       if (existing.quantity >= product.stock) {
         alert("No hay más stock disponible para este producto.");
         return;
       }
-      setCart(cart.map(item => 
-        item.productId === product.productId 
-          ? { ...item, quantity: item.quantity + 1 }
-          : item
-      ));
+      const newQty = existing.quantity + 1;
+      setLoading(true);
+      try {
+        await apiService.updateCartQuantity(product.productId, newQty);
+        setCart(cart.map(item => 
+          item.productId === product.productId 
+            ? { ...item, quantity: newQty }
+            : item
+        ));
+      } catch (err) {
+        alert("Error al actualizar cantidad en el carrito: " + err.message);
+      } finally {
+        setLoading(false);
+      }
     } else {
-      setCart([...cart, { ...product, quantity: 1 }]);
+      setLoading(true);
+      try {
+        await apiService.addToCart(product.productId, 1, product.price);
+        setCart([...cart, { ...product, quantity: 1 }]);
+      } catch (err) {
+        alert("Error al agregar producto al carrito: " + err.message);
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
-  const updateQuantity = (productId, change) => {
+  const updateQuantity = async (productId, change) => {
     const item = cart.find(i => i.productId === productId);
     const prod = products.find(p => p.productId === productId);
     if (!item) return;
     
     const newQty = item.quantity + change;
     if (newQty <= 0) {
-      removeFromCart(productId);
+      await removeFromCart(productId);
     } else {
       if (change > 0 && prod && newQty > prod.stock) {
         alert("Stock límite alcanzado.");
         return;
       }
-      setCart(cart.map(i => 
-        i.productId === productId ? { ...i, quantity: newQty } : i
-      ));
+      setLoading(true);
+      try {
+        await apiService.updateCartQuantity(productId, newQty);
+        setCart(cart.map(i => 
+          i.productId === productId ? { ...i, quantity: newQty } : i
+        ));
+      } catch (err) {
+        alert("Error al actualizar cantidad: " + err.message);
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
-  const removeFromCart = (productId) => {
-    setCart(cart.filter(item => item.productId !== productId));
+  const removeFromCart = async (productId) => {
+    setLoading(true);
+    try {
+      await apiService.removeFromCart(productId);
+      setCart(cart.filter(item => item.productId !== productId));
+    } catch (err) {
+      alert("Error al eliminar del carrito: " + err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const clearCart = () => {
-    setCart([]);
+  const clearCart = async () => {
+    setLoading(true);
+    try {
+      await apiService.clearCart();
+      setCart([]);
+    } catch (err) {
+      alert("Error al limpiar el carrito: " + err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleCheckout = async () => {
@@ -147,6 +210,11 @@ export default function Storefront() {
     setLoading(true);
     try {
       await apiService.createOrder(orderData);
+      try {
+        await apiService.clearCart();
+      } catch (clearErr) {
+        console.error("Error al limpiar el carrito en el backend tras checkout:", clearErr);
+      }
       setCart([]);
       setActiveTab("orders");
       await loadData(); // Reload products (for stock updates) and orders list
@@ -528,7 +596,6 @@ export default function Storefront() {
   );
 }
 
-// Styling definitions to match premium glassmorphic dark theme
 const styles = {
   gridContainer: {
     display: "grid",
@@ -561,14 +628,13 @@ const styles = {
     gap: "12px"
   },
   logoText: {
-    fontSize: "1.75rem",
-    background: "linear-gradient(135deg, #06b6d4 0%, #8b5cf6 100%)",
-    WebkitBackgroundClip: "text",
-    WebkitTextFillColor: "transparent",
-    fontWeight: "800"
+    fontSize: "1.5rem",
+    color: "var(--text-primary)",
+    fontWeight: "700",
+    letterSpacing: "-0.03em"
   },
   logoSub: {
-    fontSize: "0.85rem",
+    fontSize: "0.8rem",
     color: "var(--text-secondary)",
     marginTop: "2px"
   },
@@ -584,7 +650,9 @@ const styles = {
     gap: "10px",
     padding: "8px 14px",
     fontSize: "0.85rem",
-    backgroundColor: "rgba(15, 23, 42, 0.45)"
+    backgroundColor: "var(--bg-secondary)",
+    borderRadius: "6px",
+    border: "1px solid var(--border-color)"
   },
   smallToggleBtn: {
     padding: "4px 8px",
@@ -596,18 +664,20 @@ const styles = {
     alignItems: "center",
     gap: "10px",
     padding: "8px 14px",
-    backgroundColor: "rgba(15, 23, 42, 0.45)"
+    backgroundColor: "var(--bg-secondary)",
+    borderRadius: "6px",
+    border: "1px solid var(--border-color)"
   },
   avatar: {
     width: "32px",
     height: "32px",
     borderRadius: "50%",
-    background: "linear-gradient(135deg, var(--accent-cyan-glow) 0%, var(--accent-purple-glow) 100%)",
+    background: "var(--bg-primary)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     border: "1px solid var(--border-color)",
-    color: "var(--accent-cyan)"
+    color: "var(--text-secondary)"
   },
   profileInfo: {
     display: "flex",
@@ -627,23 +697,20 @@ const styles = {
     display: "flex",
     alignItems: "center",
     transition: "color 0.2s ease",
-    marginLeft: "5px",
-    ":hover": {
-      color: "var(--accent-rose)"
-    }
+    marginLeft: "5px"
   },
   tabsContainer: {
     display: "flex",
     gap: "12px"
   },
   tabBtn: {
-    background: "rgba(255, 255, 255, 0.02)",
+    background: "transparent",
     border: "1px solid var(--border-color)",
     color: "var(--text-secondary)",
-    padding: "10px 18px",
-    borderRadius: "10px",
-    fontSize: "0.9rem",
-    fontWeight: "600",
+    padding: "8px 16px",
+    borderRadius: "6px",
+    fontSize: "0.875rem",
+    fontWeight: "500",
     cursor: "pointer",
     display: "flex",
     alignItems: "center",
@@ -651,16 +718,17 @@ const styles = {
     transition: "all 0.2s ease"
   },
   tabBtnActive: {
-    background: "linear-gradient(135deg, var(--accent-cyan-glow) 0%, var(--accent-purple-glow) 100%)",
-    borderColor: "var(--accent-cyan)",
+    background: "var(--bg-secondary)",
+    borderColor: "var(--text-secondary)",
     color: "var(--text-primary)"
   },
   errorBanner: {
     display: "flex",
     alignItems: "center",
     padding: "12px 18px",
-    backgroundColor: "rgba(244, 63, 94, 0.1)",
-    borderColor: "rgba(244, 63, 94, 0.2)",
+    backgroundColor: "rgba(239, 68, 68, 0.08)",
+    border: "1px solid rgba(239, 68, 68, 0.15)",
+    borderRadius: "6px",
     color: "var(--text-primary)"
   },
   loaderContainer: {
@@ -677,7 +745,9 @@ const styles = {
     padding: "14px",
     flexWrap: "wrap",
     gap: "15px",
-    backgroundColor: "rgba(15, 23, 42, 0.4)"
+    backgroundColor: "var(--bg-secondary)",
+    borderRadius: "6px",
+    border: "1px solid var(--border-color)"
   },
   searchWrapper: {
     position: "relative",
@@ -693,10 +763,10 @@ const styles = {
   },
   searchInput: {
     width: "100%",
-    backgroundColor: "rgba(8, 12, 20, 0.6)",
+    backgroundColor: "var(--bg-primary)",
     border: "1px solid var(--border-color)",
-    padding: "10px 16px 10px 42px",
-    borderRadius: "8px",
+    padding: "8px 16px 8px 42px",
+    borderRadius: "6px",
     color: "var(--text-primary)",
     fontSize: "0.85rem",
     outline: "none"
@@ -718,10 +788,10 @@ const styles = {
     pointerEvents: "none"
   },
   selectInput: {
-    backgroundColor: "rgba(8, 12, 20, 0.6)",
+    backgroundColor: "var(--bg-primary)",
     border: "1px solid var(--border-color)",
-    padding: "10px 12px 10px 32px",
-    borderRadius: "8px",
+    padding: "8px 12px 8px 32px",
+    borderRadius: "6px",
     color: "var(--text-primary)",
     fontSize: "0.85rem",
     cursor: "pointer",
@@ -736,7 +806,9 @@ const styles = {
     justifyContent: "center",
     padding: "80px 20px",
     textAlign: "center",
-    backgroundColor: "rgba(15, 23, 42, 0.25)"
+    backgroundColor: "var(--bg-secondary)",
+    border: "1px solid var(--border-color)",
+    borderRadius: "6px"
   },
   productsGrid: {
     display: "grid",
@@ -749,7 +821,9 @@ const styles = {
     flexDirection: "column",
     padding: "18px",
     gap: "12px",
-    backgroundColor: "rgba(15, 23, 42, 0.4)",
+    backgroundColor: "var(--bg-card)",
+    borderRadius: "8px",
+    border: "1px solid var(--border-color)",
     position: "relative"
   },
   productHeader: {
@@ -759,21 +833,22 @@ const styles = {
   },
   productCategory: {
     fontSize: "0.75rem",
-    fontWeight: "600",
+    fontWeight: "500",
     color: "var(--text-secondary)",
-    backgroundColor: "rgba(255, 255, 255, 0.05)",
+    backgroundColor: "var(--bg-secondary)",
     padding: "2px 8px",
-    borderRadius: "4px"
+    borderRadius: "4px",
+    border: "1px solid var(--border-color)"
   },
   stockBadge: {
     fontSize: "0.75rem",
-    fontWeight: "700",
+    fontWeight: "600",
     padding: "2px 8px",
     borderRadius: "4px"
   },
   productName: {
-    fontSize: "1.1rem",
-    fontWeight: "700",
+    fontSize: "1.05rem",
+    fontWeight: "600",
     color: "var(--text-primary)",
     marginTop: "4px"
   },
@@ -795,12 +870,13 @@ const styles = {
   storeNameLabel: {
     display: "flex",
     alignItems: "center",
-    fontSize: "0.8rem",
-    color: "var(--accent-cyan)",
-    backgroundColor: "var(--accent-cyan-glow)",
+    fontSize: "0.75rem",
+    color: "var(--text-secondary)",
+    backgroundColor: "var(--bg-secondary)",
     alignSelf: "flex-start",
     padding: "3px 8px",
-    borderRadius: "6px",
+    borderRadius: "4px",
+    border: "1px solid var(--border-color)",
     fontWeight: "500"
   },
   productFooter: {
@@ -810,14 +886,14 @@ const styles = {
     marginTop: "8px"
   },
   productPrice: {
-    fontSize: "1.3rem",
-    fontWeight: "800",
+    fontSize: "1.2rem",
+    fontWeight: "700",
     color: "var(--text-primary)"
   },
   addBtn: {
     padding: "8px 16px",
     fontSize: "0.85rem",
-    borderRadius: "8px",
+    borderRadius: "6px",
     display: "flex",
     alignItems: "center"
   },
@@ -826,7 +902,9 @@ const styles = {
     height: "calc(100vh - 48px)",
     display: "flex",
     flexDirection: "column",
-    backgroundColor: "rgba(15, 23, 42, 0.75)",
+    backgroundColor: "var(--bg-secondary)",
+    borderRadius: "8px",
+    border: "1px solid var(--border-color)",
     position: "sticky",
     top: "24px"
   },
@@ -858,8 +936,8 @@ const styles = {
   },
   cartItemCard: {
     padding: "12px",
-    borderRadius: "10px",
-    backgroundColor: "rgba(255, 255, 255, 0.02)",
+    borderRadius: "6px",
+    backgroundColor: "var(--bg-card)",
     border: "1px solid var(--border-color)",
     display: "flex",
     flexDirection: "column",
@@ -891,13 +969,14 @@ const styles = {
   },
   cartItemPrice: {
     fontSize: "0.95rem",
-    fontWeight: "700",
+    fontWeight: "600",
     color: "var(--text-primary)"
   },
   quantityControls: {
     display: "flex",
     alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.2)",
+    backgroundColor: "var(--bg-primary)",
+    border: "1px solid var(--border-color)",
     borderRadius: "6px",
     padding: "2px"
   },
@@ -923,7 +1002,7 @@ const styles = {
   cartFooter: {
     padding: "18px",
     borderTop: "1px solid var(--border-color)",
-    backgroundColor: "rgba(8, 12, 20, 0.4)",
+    backgroundColor: "var(--bg-secondary)",
     display: "flex",
     flexDirection: "column",
     gap: "14px"
@@ -931,14 +1010,14 @@ const styles = {
   cartTotalRow: {
     display: "flex",
     justifyContent: "space-between",
-    fontSize: "1rem",
-    fontWeight: "600",
+    fontSize: "0.95rem",
+    fontWeight: "500",
     color: "var(--text-secondary)"
   },
   cartTotalAmount: {
-    fontSize: "1.3rem",
-    fontWeight: "800",
-    color: "var(--accent-cyan)"
+    fontSize: "1.2rem",
+    fontWeight: "700",
+    color: "var(--text-primary)"
   },
   cartActionButtons: {
     display: "flex",
@@ -951,7 +1030,9 @@ const styles = {
   },
   orderCard: {
     padding: "20px",
-    backgroundColor: "rgba(15, 23, 42, 0.4)",
+    backgroundColor: "var(--bg-card)",
+    borderRadius: "8px",
+    border: "1px solid var(--border-color)",
     display: "flex",
     flexDirection: "column",
     gap: "14px"
@@ -962,8 +1043,8 @@ const styles = {
     alignItems: "start"
   },
   orderIdText: {
-    fontSize: "1rem",
-    fontWeight: "700",
+    fontSize: "0.95rem",
+    fontWeight: "600",
     color: "var(--text-primary)"
   },
   orderDate: {
@@ -1002,8 +1083,9 @@ const styles = {
   cancelOrderBtn: {
     padding: "6px 14px",
     fontSize: "0.8rem",
-    borderColor: "rgba(244, 63, 94, 0.4)",
-    color: "#f43f5e",
-    backgroundColor: "rgba(244, 63, 94, 0.05)"
+    borderColor: "rgba(239, 68, 68, 0.2)",
+    color: "var(--accent-rose)",
+    backgroundColor: "var(--accent-rose-glow)",
+    borderRadius: "6px"
   }
 };

@@ -64,6 +64,8 @@ const getMockStores = () => JSON.parse(localStorage.getItem("cloudshop_mock_stor
 const saveMockStores = (data) => localStorage.setItem("cloudshop_mock_stores", JSON.stringify(data));
 const getMockOrders = () => JSON.parse(localStorage.getItem("cloudshop_mock_orders"));
 const saveMockOrders = (data) => localStorage.setItem("cloudshop_mock_orders", JSON.stringify(data));
+const getMockCart = () => JSON.parse(localStorage.getItem("cloudshop_mock_cart")) || { cartId: "mock-user", products: [] };
+const saveMockCart = (data) => localStorage.setItem("cloudshop_mock_cart", JSON.stringify(data));
 
 // Generador de datos Mock dinámicos para dashboard
 const generateMockDashboardData = () => {
@@ -412,5 +414,57 @@ export const apiService = {
       saveMockOrders(orders);
     }
     return apiService.updateOrderStatus(id, "Cancelado");
+  },
+
+  // ==========================================
+  // METODOS DEL CARRITO (CART)
+  // ==========================================
+  getCart: async () => {
+    if (forceMock) return getMockCart();
+    return apiRequest("/cart");
+  },
+  addToCart: async (productId, quantity, price) => {
+    if (forceMock) {
+      const cart = getMockCart();
+      const idx = cart.products.findIndex(p => p.productId === productId);
+      if (idx >= 0) {
+        cart.products[idx].quantity += quantity;
+      } else {
+        cart.products.push({ productId, quantity, price: Number(price) });
+      }
+      saveMockCart(cart);
+      return cart;
+    }
+    return apiRequest("/cart/items", "POST", { productId, quantity, price: Number(price) });
+  },
+  updateCartQuantity: async (productId, quantity) => {
+    if (forceMock) {
+      const cart = getMockCart();
+      const idx = cart.products.findIndex(p => p.productId === productId);
+      if (idx >= 0) {
+        cart.products[idx].quantity = quantity;
+        saveMockCart(cart);
+      }
+      return cart;
+    }
+    return apiRequest(`/cart/items/${productId}`, "PUT", { quantity });
+  },
+  removeFromCart: async (productId) => {
+    if (forceMock) {
+      const cart = getMockCart();
+      cart.products = cart.products.filter(p => p.productId !== productId);
+      saveMockCart(cart);
+      return cart;
+    }
+    return apiRequest(`/cart/items/${productId}`, "DELETE");
+  },
+  clearCart: async () => {
+    if (forceMock) {
+      const cart = getMockCart();
+      cart.products = [];
+      saveMockCart(cart);
+      return cart;
+    }
+    return apiRequest("/cart", "DELETE");
   }
 };

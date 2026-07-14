@@ -887,10 +887,9 @@ export default function Dashboard() {
 const styles = {
   logoText: {
     fontSize: "1.5rem",
-    background: "linear-gradient(135deg, #06b6d4 0%, #8b5cf6 100%)",
-    WebkitBackgroundClip: "text",
-    WebkitTextFillColor: "transparent",
-    fontWeight: "800"
+    color: "var(--text-primary)",
+    fontWeight: "700",
+    letterSpacing: "-0.03em"
   },
   logoContainer: {
     display: "flex",
@@ -912,19 +911,18 @@ const styles = {
     display: "flex",
     alignItems: "center",
     gap: "12px",
-    padding: "12px 16px",
-    borderRadius: "10px",
+    padding: "10px 14px",
+    borderRadius: "6px",
     color: "var(--text-secondary)",
     cursor: "pointer",
-    fontWeight: "600",
+    fontWeight: "500",
     transition: "all 0.2s ease",
-    fontSize: "0.95rem"
+    fontSize: "0.875rem"
   },
   navItemActive: {
-    background: "linear-gradient(135deg, var(--accent-cyan-glow) 0%, var(--accent-purple-glow) 100%)",
-    borderColor: "var(--accent-cyan)",
-    color: "var(--text-primary)",
-    boxShadow: "0 4px 15px rgba(6, 182, 212, 0.15)"
+    background: "var(--bg-primary)",
+    border: "1px solid var(--border-color)",
+    color: "var(--text-primary)"
   },
   sidebarBottom: {
     borderTop: "1px solid var(--border-color)",
@@ -938,20 +936,20 @@ const styles = {
     alignItems: "center",
     gap: "12px",
     padding: "10px",
-    borderRadius: "8px",
-    backgroundColor: "rgba(255, 255, 255, 0.02)",
+    borderRadius: "6px",
+    backgroundColor: "var(--bg-primary)",
     border: "1px solid var(--border-color)"
   },
   avatar: {
     width: "32px",
     height: "32px",
     borderRadius: "50%",
-    background: "linear-gradient(135deg, var(--accent-cyan-glow) 0%, var(--accent-purple-glow) 100%)",
+    background: "var(--bg-secondary)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     border: "1px solid var(--border-color)",
-    color: "var(--accent-cyan)"
+    color: "var(--text-secondary)"
   },
   userInfoText: {
     display: "flex",
@@ -960,7 +958,7 @@ const styles = {
   },
   userName: {
     fontSize: "0.85rem",
-    fontWeight: "700",
+    fontWeight: "600",
     color: "var(--text-primary)",
     whiteSpace: "nowrap",
     overflow: "hidden",
@@ -974,29 +972,28 @@ const styles = {
     textOverflow: "ellipsis"
   },
   logoutBtn: {
-    backgroundColor: "rgba(244, 63, 94, 0.1)",
-    border: "1px solid rgba(244, 63, 94, 0.2)",
-    color: "#f43f5e",
+    backgroundColor: "rgba(239, 68, 68, 0.08)",
+    border: "1px solid rgba(239, 68, 68, 0.15)",
+    color: "var(--accent-rose)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     gap: "10px",
     padding: "10px 16px",
-    borderRadius: "8px",
+    borderRadius: "6px",
     cursor: "pointer",
-    fontWeight: "600",
-    fontSize: "0.9rem",
+    fontWeight: "500",
+    fontSize: "0.875rem",
     transition: "all 0.2s ease"
   },
   sidebar: {
     display: "flex",
     flexDirection: "column",
     justifyContent: "space-between",
-    width: "280px",
+    width: "240px",
     borderRight: "1px solid var(--border-color)",
     padding: "24px",
-    backgroundColor: "rgba(15, 23, 42, 0.75)",
-    backdropFilter: "blur(var(--glass-blur))",
+    backgroundColor: "var(--bg-secondary)",
     height: "100vh",
     position: "sticky",
     top: 0
@@ -1024,7 +1021,9 @@ const styles = {
     alignItems: "center",
     gap: "12px",
     padding: "8px 14px",
-    backgroundColor: "rgba(15, 23, 42, 0.45)"
+    backgroundColor: "var(--bg-secondary)",
+    border: "1px solid var(--border-color)",
+    borderRadius: "6px"
   },
   dbToggleLabel: {
     display: "flex",
@@ -1042,15 +1041,16 @@ const styles = {
   },
   reloadBtn: {
     padding: "10px",
-    borderRadius: "8px"
+    borderRadius: "6px"
   },
   errorBanner: {
     display: "flex",
     alignItems: "center",
     gap: "16px",
     padding: "16px 20px",
-    backgroundColor: "rgba(244, 63, 94, 0.08)",
-    borderColor: "rgba(244, 63, 94, 0.25)",
+    backgroundColor: "rgba(239, 68, 68, 0.08)",
+    border: "1px solid rgba(239, 68, 68, 0.15)",
+    borderRadius: "6px",
     marginBottom: "20px"
   },
   errorTextContainer: {
@@ -1059,7 +1059,7 @@ const styles = {
   errorBtn: {
     padding: "8px 16px",
     fontSize: "0.85rem",
-    borderRadius: "8px"
+    borderRadius: "6px"
   },
   loaderContainer: {
     display: "flex",
@@ -1076,7 +1076,9 @@ const styles = {
   },
   kpiCard: {
     padding: "24px",
-    backgroundColor: "rgba(15, 23, 42, 0.45)"
+    backgroundColor: "var(--bg-card)",
+    borderRadius: "8px",
+    border: "1px solid var(--border-color)"
   },
   kpiHeader: {
     display: "flex",
@@ -1090,17 +1092,20 @@ const styles = {
   },
   kpiValue: {
     fontSize: "1.8rem",
-    fontWeight: "800",
+    fontWeight: "700",
     color: "var(--text-primary)",
     marginTop: "8px"
   },
   kpiIconWrapper: {
     width: "48px",
     height: "48px",
-    borderRadius: "12px",
+    borderRadius: "8px",
     display: "flex",
     alignItems: "center",
-    justifyContent: "center"
+    justifyContent: "center",
+    backgroundColor: "var(--bg-primary)",
+    border: "1px solid var(--border-color)",
+    color: "var(--text-primary)"
   },
   chartsGrid: {
     display: "grid",
@@ -1110,14 +1115,16 @@ const styles = {
   },
   cardPanel: {
     padding: "24px",
-    backgroundColor: "rgba(15, 23, 42, 0.4)",
+    backgroundColor: "var(--bg-card)",
+    borderRadius: "8px",
+    border: "1px solid var(--border-color)",
     display: "flex",
     flexDirection: "column",
     gap: "16px"
   },
   panelTitle: {
-    fontSize: "1.1rem",
-    fontWeight: "700",
+    fontSize: "1rem",
+    fontWeight: "600",
     color: "var(--text-primary)"
   },
   chartContainer: {
@@ -1130,16 +1137,16 @@ const styles = {
     justifyContent: "space-between",
     alignItems: "center",
     padding: "10px 14px",
-    backgroundColor: "rgba(255, 255, 255, 0.02)",
+    backgroundColor: "var(--bg-primary)",
     border: "1px solid var(--border-color)",
-    borderRadius: "8px"
+    borderRadius: "6px"
   },
   statusLabel: {
     display: "flex",
     alignItems: "center",
     gap: "10px",
     fontSize: "0.85rem",
-    fontWeight: "600",
+    fontWeight: "500",
     color: "var(--text-secondary)"
   },
   statusDot: {
@@ -1150,7 +1157,7 @@ const styles = {
   statusCount: {
     fontSize: "0.85rem",
     color: "var(--text-primary)",
-    fontWeight: "700"
+    fontWeight: "600"
   },
   tableResponsive: {
     overflowX: "auto"
@@ -1171,7 +1178,9 @@ const styles = {
   },
   formCard: {
     padding: "24px",
-    backgroundColor: "rgba(15, 23, 42, 0.6)",
+    backgroundColor: "var(--bg-card)",
+    border: "1px solid var(--border-color)",
+    borderRadius: "8px",
     display: "flex",
     flexDirection: "column",
     gap: "20px"
@@ -1187,10 +1196,10 @@ const styles = {
     gap: "6px"
   },
   formInput: {
-    backgroundColor: "rgba(8, 12, 20, 0.6)",
+    backgroundColor: "var(--bg-primary)",
     border: "1px solid var(--border-color)",
     padding: "10px 14px",
-    borderRadius: "8px",
+    borderRadius: "6px",
     color: "var(--text-primary)",
     fontSize: "0.85rem",
     outline: "none"
@@ -1212,7 +1221,7 @@ const styles = {
     borderRadius: "6px"
   },
   roleSelect: {
-    backgroundColor: "rgba(8, 12, 20, 0.6)",
+    backgroundColor: "var(--bg-primary)",
     border: "1px solid var(--border-color)",
     padding: "4px 8px",
     borderRadius: "6px",
@@ -1220,7 +1229,7 @@ const styles = {
     fontSize: "0.8rem"
   },
   statusSelect: {
-    backgroundColor: "rgba(8, 12, 20, 0.6)",
+    backgroundColor: "var(--bg-primary)",
     border: "1px solid var(--border-color)",
     padding: "4px 8px",
     borderRadius: "6px",
