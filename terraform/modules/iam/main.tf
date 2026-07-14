@@ -44,3 +44,43 @@ resource "aws_iam_role_policy_attachment" "dynamodb_attachment" {
   role       = aws_iam_role.lambda_role.name
   policy_arn = aws_iam_policy.dynamodb_policy.arn
 }
+
+# ── Política: EventBridge (PutEvents al bus de CloudShop) ────
+resource "aws_iam_policy" "eventbridge_policy" {
+  name = "cloudshop-eventbridge-policy"
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = ["events:PutEvents"]
+        Resource = "arn:aws:events:*:*:event-bus/cloudshop-events"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "eventbridge_attachment" {
+  role       = aws_iam_role.lambda_role.name
+  policy_arn = aws_iam_policy.eventbridge_policy.arn
+}
+
+# ── Política: SES (SendEmail para notificaciones) ─────────────
+resource "aws_iam_policy" "ses_policy" {
+  name = "cloudshop-ses-policy"
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = ["ses:SendEmail", "ses:SendRawEmail"]
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "ses_attachment" {
+  role       = aws_iam_role.lambda_role.name
+  policy_arn = aws_iam_policy.ses_policy.arn
+}

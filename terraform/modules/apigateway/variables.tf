@@ -124,3 +124,19 @@ variable "remove_product_invoke_arn" { type = string }
 variable "remove_product_function_name" { type = string }
 variable "clear_cart_invoke_arn" { type = string }
 variable "clear_cart_function_name" { type = string }
+
+# Orders
+variable "create_order_invoke_arn"           { type = string }
+variable "create_order_function_name"        { type = string }
+variable "get_orders_invoke_arn"             { type = string }
+variable "get_orders_function_name"          { type = string }
+variable "get_order_by_id_invoke_arn"        { type = string }
+variable "get_order_by_id_function_name"     { type = string }
+variable "update_order_status_invoke_arn"    { type = string }
+variable "update_order_status_function_name" { type = string }
+variable "cancel_order_invoke_arn"           { type = string }
+variable "cancel_order_function_name"        { type = string }
+
+# Audit
+variable "get_audit_invoke_arn"              { type = string }
+variable "get_audit_function_name"           { type = string }

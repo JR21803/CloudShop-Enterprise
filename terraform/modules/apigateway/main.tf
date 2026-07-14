@@ -221,7 +221,15 @@ resource "aws_api_gateway_deployment" "deployment" {
     aws_api_gateway_integration.add_product,
     aws_api_gateway_integration.update_quantity,
     aws_api_gateway_integration.remove_product,
-    aws_api_gateway_integration.clear_cart
+    aws_api_gateway_integration.clear_cart,
+
+    aws_api_gateway_integration.create_order,
+    aws_api_gateway_integration.get_orders,
+    aws_api_gateway_integration.get_order_by_id,
+    aws_api_gateway_integration.update_order_status,
+    aws_api_gateway_integration.cancel_order,
+
+    aws_api_gateway_integration.get_audit,
 
   ]
 
@@ -955,6 +963,194 @@ resource "aws_lambda_permission" "remove_product" {
   statement_id  = "AllowExecutionRemoveProduct"
   action        = "lambda:InvokeFunction"
   function_name = var.remove_product_function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_api_gateway_rest_api.cloudshop_api.execution_arn}/*/*"
+}
+
+# ==========================================
+# ORDERS ENDPOINTS
+# ==========================================
+
+resource "aws_api_gateway_resource" "orders" {
+  rest_api_id = aws_api_gateway_rest_api.cloudshop_api.id
+  parent_id   = aws_api_gateway_rest_api.cloudshop_api.root_resource_id
+  path_part   = "orders"
+}
+
+resource "aws_api_gateway_resource" "order_id" {
+  rest_api_id = aws_api_gateway_rest_api.cloudshop_api.id
+  parent_id   = aws_api_gateway_resource.orders.id
+  path_part   = "{id}"
+}
+
+# POST /orders — createOrder
+resource "aws_api_gateway_method" "create_order" {
+  rest_api_id      = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id      = aws_api_gateway_resource.orders.id
+  http_method      = "POST"
+  authorization    = "COGNITO_USER_POOLS"
+  authorizer_id    = aws_api_gateway_authorizer.cognito.id
+  api_key_required = true
+}
+
+resource "aws_api_gateway_integration" "create_order" {
+  rest_api_id             = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id             = aws_api_gateway_resource.orders.id
+  http_method             = aws_api_gateway_method.create_order.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = var.create_order_invoke_arn
+}
+
+resource "aws_lambda_permission" "create_order" {
+  statement_id  = "AllowExecutionCreateOrder"
+  action        = "lambda:InvokeFunction"
+  function_name = var.create_order_function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_api_gateway_rest_api.cloudshop_api.execution_arn}/*/*"
+}
+
+# GET /orders — getOrders
+resource "aws_api_gateway_method" "get_orders" {
+  rest_api_id      = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id      = aws_api_gateway_resource.orders.id
+  http_method      = "GET"
+  authorization    = "COGNITO_USER_POOLS"
+  authorizer_id    = aws_api_gateway_authorizer.cognito.id
+  api_key_required = true
+}
+
+resource "aws_api_gateway_integration" "get_orders" {
+  rest_api_id             = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id             = aws_api_gateway_resource.orders.id
+  http_method             = aws_api_gateway_method.get_orders.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = var.get_orders_invoke_arn
+}
+
+resource "aws_lambda_permission" "get_orders" {
+  statement_id  = "AllowExecutionGetOrders"
+  action        = "lambda:InvokeFunction"
+  function_name = var.get_orders_function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_api_gateway_rest_api.cloudshop_api.execution_arn}/*/*"
+}
+
+# GET /orders/{id} — getOrderById
+resource "aws_api_gateway_method" "get_order_by_id" {
+  rest_api_id      = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id      = aws_api_gateway_resource.order_id.id
+  http_method      = "GET"
+  authorization    = "COGNITO_USER_POOLS"
+  authorizer_id    = aws_api_gateway_authorizer.cognito.id
+  api_key_required = true
+}
+
+resource "aws_api_gateway_integration" "get_order_by_id" {
+  rest_api_id             = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id             = aws_api_gateway_resource.order_id.id
+  http_method             = aws_api_gateway_method.get_order_by_id.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = var.get_order_by_id_invoke_arn
+}
+
+resource "aws_lambda_permission" "get_order_by_id" {
+  statement_id  = "AllowExecutionGetOrderById"
+  action        = "lambda:InvokeFunction"
+  function_name = var.get_order_by_id_function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_api_gateway_rest_api.cloudshop_api.execution_arn}/*/*"
+}
+
+# PUT /orders/{id} — updateOrderStatus
+resource "aws_api_gateway_method" "update_order_status" {
+  rest_api_id      = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id      = aws_api_gateway_resource.order_id.id
+  http_method      = "PUT"
+  authorization    = "COGNITO_USER_POOLS"
+  authorizer_id    = aws_api_gateway_authorizer.cognito.id
+  api_key_required = true
+}
+
+resource "aws_api_gateway_integration" "update_order_status" {
+  rest_api_id             = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id             = aws_api_gateway_resource.order_id.id
+  http_method             = aws_api_gateway_method.update_order_status.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = var.update_order_status_invoke_arn
+}
+
+resource "aws_lambda_permission" "update_order_status" {
+  statement_id  = "AllowExecutionUpdateOrderStatus"
+  action        = "lambda:InvokeFunction"
+  function_name = var.update_order_status_function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_api_gateway_rest_api.cloudshop_api.execution_arn}/*/*"
+}
+
+# DELETE /orders/{id} — cancelOrder
+resource "aws_api_gateway_method" "cancel_order" {
+  rest_api_id      = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id      = aws_api_gateway_resource.order_id.id
+  http_method      = "DELETE"
+  authorization    = "COGNITO_USER_POOLS"
+  authorizer_id    = aws_api_gateway_authorizer.cognito.id
+  api_key_required = true
+}
+
+resource "aws_api_gateway_integration" "cancel_order" {
+  rest_api_id             = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id             = aws_api_gateway_resource.order_id.id
+  http_method             = aws_api_gateway_method.cancel_order.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = var.cancel_order_invoke_arn
+}
+
+resource "aws_lambda_permission" "cancel_order" {
+  statement_id  = "AllowExecutionCancelOrder"
+  action        = "lambda:InvokeFunction"
+  function_name = var.cancel_order_function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_api_gateway_rest_api.cloudshop_api.execution_arn}/*/*"
+}
+
+# ==========================================
+# AUDIT ENDPOINT
+# ==========================================
+
+resource "aws_api_gateway_resource" "audit" {
+  rest_api_id = aws_api_gateway_rest_api.cloudshop_api.id
+  parent_id   = aws_api_gateway_rest_api.cloudshop_api.root_resource_id
+  path_part   = "audit"
+}
+
+# GET /audit — getAudit (solo Administrador)
+resource "aws_api_gateway_method" "get_audit" {
+  rest_api_id      = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id      = aws_api_gateway_resource.audit.id
+  http_method      = "GET"
+  authorization    = "COGNITO_USER_POOLS"
+  authorizer_id    = aws_api_gateway_authorizer.cognito.id
+  api_key_required = true
+}
+
+resource "aws_api_gateway_integration" "get_audit" {
+  rest_api_id             = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id             = aws_api_gateway_resource.audit.id
+  http_method             = aws_api_gateway_method.get_audit.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = var.get_audit_invoke_arn
+}
+
+resource "aws_lambda_permission" "get_audit" {
+  statement_id  = "AllowExecutionGetAudit"
+  action        = "lambda:InvokeFunction"
+  function_name = var.get_audit_function_name
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_api_gateway_rest_api.cloudshop_api.execution_arn}/*/*"
 }

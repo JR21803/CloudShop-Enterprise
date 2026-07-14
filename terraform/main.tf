@@ -13,6 +13,7 @@ module "dynamodb" {
 module "lambda" {
   source          = "./modules/lambda"
   lambda_role_arn = module.iam.lambda_role_arn
+  ses_from_email  = var.ses_from_email
 }
 
 module "apigateway" {
@@ -102,6 +103,56 @@ module "apigateway" {
   remove_product_function_name  = module.lambda.remove_product_function_name
   clear_cart_invoke_arn         = module.lambda.clear_cart_invoke_arn
   clear_cart_function_name      = module.lambda.clear_cart_function_name
+
+  # orders
+  create_order_invoke_arn           = module.lambda.create_order_invoke_arn
+  create_order_function_name        = module.lambda.create_order_function_name
+  get_orders_invoke_arn             = module.lambda.get_orders_invoke_arn
+  get_orders_function_name          = module.lambda.get_orders_function_name
+  get_order_by_id_invoke_arn        = module.lambda.get_order_by_id_invoke_arn
+  get_order_by_id_function_name     = module.lambda.get_order_by_id_function_name
+  update_order_status_invoke_arn    = module.lambda.update_order_status_invoke_arn
+  update_order_status_function_name = module.lambda.update_order_status_function_name
+  cancel_order_invoke_arn           = module.lambda.cancel_order_invoke_arn
+  cancel_order_function_name        = module.lambda.cancel_order_function_name
+
+  # audit
+  get_audit_invoke_arn    = module.lambda.get_audit_invoke_arn
+  get_audit_function_name = module.lambda.get_audit_function_name
+}
+
+# ── EventBridge ─────────────────────────────────────────────
+module "eventbridge" {
+  source = "./modules/eventbridge"
+
+  process_audit_event_arn           = module.lambda.process_audit_event_arn
+  process_audit_event_function_name = module.lambda.process_audit_event_function_name
+  send_email_arn                    = module.lambda.send_email_arn
+  send_email_function_name          = module.lambda.send_email_function_name
+
+  depends_on = [module.lambda]
+}
+
+# ── SES ─────────────────────────────────────────────────────
+module "ses" {
+  source         = "./modules/ses"
+  ses_from_email = var.ses_from_email
+}
+
+# ── CloudWatch ───────────────────────────────────────────────
+module "cloudwatch" {
+  source     = "./modules/cloudwatch"
+  aws_region = var.aws_region
+
+  depends_on = [module.lambda]
+}
+
+# ── WAF ─────────────────────────────────────────────────────
+module "waf" {
+  source                = "./modules/waf"
+  api_gateway_stage_arn = module.apigateway.stage_arn
+
+  depends_on = [module.apigateway]
 }
 
 module "frontend" {

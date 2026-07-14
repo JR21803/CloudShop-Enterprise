@@ -14,3 +14,9 @@ variable "owner" { //Borrar, no necesario
   type = string
 }
 
+variable "ses_from_email" {
+  type        = string
+  description = "Correo verificado en SES para el remitente de notificaciones"
+  default     = "noreply@cloudshop.com"
+}
+
