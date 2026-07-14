@@ -67,6 +67,53 @@ const saveMockOrders = (data) => localStorage.setItem("cloudshop_mock_orders", J
 const getMockCart = () => JSON.parse(localStorage.getItem("cloudshop_mock_cart")) || { cartId: "mock-user", products: [] };
 const saveMockCart = (data) => localStorage.setItem("cloudshop_mock_cart", JSON.stringify(data));
 
+const getMockAudit = () => {
+  let audit = localStorage.getItem("cloudshop_mock_audit");
+  if (!audit) {
+    const defaultAudit = [
+      {
+        auditId: "a1",
+        usuario: "admin@cloudshop.com",
+        accion: "ELIMINAR_PRODUCTO",
+        fecha: new Date().toISOString().split("T")[0],
+        resultado: "EXITOSO",
+        detalles: { productId: "p3", name: "Cafetera Express Automática" },
+        timestamp: new Date(Date.now() - 3600000).toISOString()
+      },
+      {
+        auditId: "a2",
+        usuario: "cliente@gmail.com",
+        accion: "CREAR_PEDIDO",
+        fecha: new Date().toISOString().split("T")[0],
+        resultado: "EXITOSO",
+        detalles: { orderId: "o3", total: 298 },
+        timestamp: new Date().toISOString()
+      }
+    ];
+    localStorage.setItem("cloudshop_mock_audit", JSON.stringify(defaultAudit));
+    return defaultAudit;
+  }
+  return JSON.parse(audit);
+};
+const saveMockAudit = (data) => localStorage.setItem("cloudshop_mock_audit", JSON.stringify(data));
+
+const addMockAuditRecord = (accion, detalles = {}) => {
+  const session = cognitoService.getCurrentSession();
+  const usuario = session?.user?.email || "sistema";
+  const audit = getMockAudit();
+  const record = {
+    auditId: `a-${Math.random().toString(36).substring(2, 9)}`,
+    usuario,
+    accion,
+    fecha: new Date().toISOString().split("T")[0],
+    resultado: "EXITOSO",
+    detalles,
+    timestamp: new Date().toISOString()
+  };
+  audit.unshift(record);
+  saveMockAudit(audit);
+};
+
 // Generador de datos Mock dinámicos para dashboard
 const generateMockDashboardData = () => {
   const products = getMockProducts();
@@ -339,7 +386,9 @@ export const apiService = {
   // ==========================================
   getOrders: async () => {
     if (forceMock) return getMockOrders();
-    return apiRequest("/orders").catch(() => getMockOrders());
+    return apiRequest("/orders")
+      .then(res => res.orders || res)
+      .catch(() => getMockOrders());
   },
   createOrder: async (orderData) => {
     if (forceMock) {
@@ -361,6 +410,9 @@ export const apiService = {
         }
       });
       saveMockProducts(products);
+
+      // Auditar acción mock
+      addMockAuditRecord("CREAR_PEDIDO", { orderId: newOrder.orderId, total: newOrder.total, storeId: newOrder.storeId });
 
       return newOrder;
     }
@@ -384,6 +436,10 @@ export const apiService = {
         }
       });
       saveMockProducts(products);
+
+      // Auditar acción mock
+      addMockAuditRecord("CREAR_PEDIDO", { orderId: newOrder.orderId, total: newOrder.total, storeId: newOrder.storeId });
+
       return newOrder;
     });
   },
@@ -394,6 +450,11 @@ export const apiService = {
       if (idx === -1) throw new Error("Pedido no encontrado");
       orders[idx].status = status;
       saveMockOrders(orders);
+
+      // Auditar acción mock
+      const actionType = status === "Cancelado" ? "CANCELAR_PEDIDO" : "ACTUALIZAR_PEDIDO";
+      addMockAuditRecord(actionType, { orderId: id, status });
+
       return orders[idx];
     }
     return apiRequest(`/orders/${id}`, "PUT", { status }).catch(() => {
@@ -402,18 +463,58 @@ export const apiService = {
       if (idx !== -1) {
         orders[idx].status = status;
         saveMockOrders(orders);
+        
+        // Auditar acción mock
+        const actionType = status === "Cancelado" ? "CANCELAR_PEDIDO" : "ACTUALIZAR_PEDIDO";
+        addMockAuditRecord(actionType, { orderId: id, status });
       }
       return { success: true };
     });
   },
   cancelOrder: async (id) => {
-    const orders = getMockOrders();
-    const idx = orders.findIndex(o => o.orderId === id);
-    if (idx !== -1) {
-      orders[idx].status = "Cancelado";
-      saveMockOrders(orders);
-    }
     return apiService.updateOrderStatus(id, "Cancelado");
+  },
+
+  // ==========================================
+  // METODOS DE AUDITORIA (AUDIT)
+  // ==========================================
+  getAuditLogs: async (filters = {}) => {
+    const applyMockFilters = (mockAudit) => {
+      let filtered = [...mockAudit];
+      if (filters.accion) {
+        filtered = filtered.filter(a => a.accion === filters.accion);
+      }
+      if (filters.usuario) {
+        filtered = filtered.filter(a => a.usuario.toLowerCase().includes(filters.usuario.toLowerCase()));
+      }
+      if (filters.fecha) {
+        filtered = filtered.filter(a => a.fecha === filters.fecha);
+      }
+      if (filters.resultado) {
+        filtered = filtered.filter(a => a.resultado === filters.resultado);
+      }
+      return { records: filtered, count: filtered.length };
+    };
+
+    if (forceMock) {
+      return applyMockFilters(getMockAudit());
+    }
+
+    const params = new URLSearchParams();
+    if (filters.accion) params.append("accion", filters.accion);
+    if (filters.usuario) params.append("usuario", filters.usuario);
+    if (filters.fecha) params.append("fecha", filters.fecha);
+    if (filters.resultado) params.append("resultado", filters.resultado);
+    
+    const queryString = params.toString() ? `?${params.toString()}` : "";
+    return apiRequest(`/audit${queryString}`)
+      .then(res => {
+        // En AWS /audit retorna { records: [...], count: N }
+        return res;
+      })
+      .catch(() => {
+        return applyMockFilters(getMockAudit());
+      });
   },
 
   // ==========================================

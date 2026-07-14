@@ -60,7 +60,7 @@ export default function Storefront() {
       setProducts(prodData);
       setStores(storeData);
       // Filter orders to show only current user's orders
-      const userOrders = orderData.filter(o => o.customerEmail === session.user.email);
+      const userOrders = orderData.filter(o => o.customerEmail === session.user.email || o.userEmail === session.user.email);
       setOrders(userOrders);
 
       // Cargar carrito persistente

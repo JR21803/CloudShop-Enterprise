@@ -49,6 +49,8 @@ export default function Dashboard() {
   const [storesList, setStoresList] = useState([]);
   const [usersList, setUsersList] = useState([]);
   const [ordersList, setOrdersList] = useState([]);
+  const [auditList, setAuditList] = useState([]);
+  const [auditFilters, setAuditFilters] = useState({ accion: "", usuario: "", fecha: "", resultado: "" });
 
   // CRUD Forms States
   const [productForm, setProductForm] = useState({ code: "", name: "", description: "", category: "", price: "", stock: "", shop: "" });
@@ -107,6 +109,9 @@ export default function Dashboard() {
       } else if (activeTab === "orders") {
         const oData = await apiService.getOrders();
         setOrdersList(oData);
+      } else if (activeTab === "audit") {
+        const aData = await apiService.getAuditLogs(auditFilters);
+        setAuditList(aData.records || []);
       }
     } catch (err) {
       console.error(err);
@@ -344,6 +349,13 @@ export default function Dashboard() {
                   <Users size={20} />
                   <span className="nav-label">Usuarios</span>
                 </div>
+                <div 
+                  onClick={() => setActiveTab("audit")} 
+                  style={{ ...styles.navItem, ...(activeTab === "audit" ? styles.navItemActive : {}) }}
+                >
+                  <ShieldCheck size={20} />
+                  <span className="nav-label">Auditoría</span>
+                </div>
               </>
             )}
 
@@ -384,7 +396,7 @@ export default function Dashboard() {
         {/* Cabecera del Dashboard */}
         <header style={styles.headerBar}>
           <div>
-            <h1 style={{ textTransform: "capitalize" }}>{activeTab === "dashboard" ? "Dashboard" : activeTab}</h1>
+            <h1 style={{ textTransform: "capitalize" }}>{activeTab === "dashboard" ? "Dashboard" : activeTab === "audit" ? "Auditoría" : activeTab}</h1>
             <p style={styles.headerSubtitle}>Portal Administrativo de CloudShop Enterprise</p>
           </div>
 
@@ -834,7 +846,7 @@ export default function Dashboard() {
                         ordersList.map(order => (
                           <tr key={order.orderId}>
                             <td>{order.orderId.substring(0, 10).toUpperCase()}</td>
-                            <td>{order.customerEmail}</td>
+                            <td>{order.customerEmail || order.userEmail || "N/A"}</td>
                             <td>{new Date(order.createdAt).toLocaleDateString()}</td>
                             <td>
                               <div style={{ fontSize: "0.8rem", color: "var(--text-secondary)" }}>
@@ -867,6 +879,132 @@ export default function Dashboard() {
                                 <option value="Entregado">Entregado</option>
                                 <option value="Cancelado">Cancelado</option>
                               </select>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* ==========================================
+                TAB 6: AUDIT LOGS
+                ========================================== */}
+            {activeTab === "audit" && session.user.role === "Administrador" && (
+              <div style={styles.crudContainer}>
+                <h2>Bitácora de Auditoría del Sistema</h2>
+                <p style={{ color: "var(--text-secondary)", fontSize: "0.9rem", marginBottom: "15px" }}>
+                  Registro histórico de operaciones críticas y eventos de auditoría en la nube.
+                </p>
+
+                {/* Filtros de Auditoría */}
+                <div className="glass-card" style={styles.filterBar}>
+                  <div style={styles.filterGroup}>
+                    <label style={styles.filterLabel}>Acción</label>
+                    <select
+                      value={auditFilters.accion}
+                      onChange={e => setAuditFilters({ ...auditFilters, accion: e.target.value })}
+                      style={styles.filterInput}
+                    >
+                      <option value="">Todas las acciones</option>
+                      <option value="CREAR_PEDIDO">CREAR_PEDIDO</option>
+                      <option value="CANCELAR_PEDIDO">CANCELAR_PEDIDO</option>
+                      <option value="ACTUALIZAR_PEDIDO">ACTUALIZAR_PEDIDO</option>
+                      <option value="ELIMINAR_PRODUCTO">ELIMINAR_PRODUCTO</option>
+                      <option value="CREAR_USUARIO">CREAR_USUARIO</option>
+                    </select>
+                  </div>
+
+                  <div style={styles.filterGroup}>
+                    <label style={styles.filterLabel}>Usuario (Email)</label>
+                    <input
+                      type="text"
+                      placeholder="Buscar por usuario..."
+                      value={auditFilters.usuario}
+                      onChange={e => setAuditFilters({ ...auditFilters, usuario: e.target.value })}
+                      style={styles.filterInput}
+                    />
+                  </div>
+
+                  <div style={styles.filterGroup}>
+                    <label style={styles.filterLabel}>Fecha</label>
+                    <input
+                      type="date"
+                      value={auditFilters.fecha}
+                      onChange={e => setAuditFilters({ ...auditFilters, fecha: e.target.value })}
+                      style={styles.filterInput}
+                    />
+                  </div>
+
+                  <button
+                    onClick={loadAllData}
+                    style={styles.filterSearchBtn}
+                  >
+                    <Search size={16} />
+                    <span>Aplicar Filtros</span>
+                  </button>
+                  
+                  <button
+                    onClick={() => {
+                      const cleanFilters = { accion: "", usuario: "", fecha: "", resultado: "" };
+                      setAuditFilters(cleanFilters);
+                      apiService.getAuditLogs(cleanFilters).then(res => setAuditList(res.records || []));
+                    }}
+                    style={styles.filterResetBtn}
+                  >
+                    <span>Limpiar</span>
+                  </button>
+                </div>
+
+                <div className="glass-card" style={{ padding: "12px", marginTop: "15px" }}>
+                  <table className="table-premium" style={styles.table}>
+                    <thead>
+                      <tr>
+                        <th>Fecha / Hora</th>
+                        <th>Usuario</th>
+                        <th>Acción Realizada</th>
+                        <th>Resultado</th>
+                        <th>Detalles Clave</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {auditList.length === 0 ? (
+                        <tr><td colSpan="5" style={{ textAlign: "center", color: "var(--text-muted)" }}>No se encontraron registros de auditoría que coincidan con los filtros.</td></tr>
+                      ) : (
+                        auditList.map(log => (
+                          <tr key={log.auditId}>
+                            <td style={{ whiteSpace: "nowrap" }}>
+                              {log.timestamp ? new Date(log.timestamp).toLocaleString() : log.fecha}
+                            </td>
+                            <td>
+                              <span style={{ fontFamily: "monospace", color: "var(--text-secondary)" }}>
+                                {log.usuario}
+                              </span>
+                            </td>
+                            <td>
+                              <span className="badge-neon badge-purple">
+                                {log.accion}
+                              </span>
+                            </td>
+                            <td>
+                              <span className={`badge-neon ${log.resultado === "EXITOSO" ? "badge-green" : "badge-rose"}`}>
+                                {log.resultado}
+                              </span>
+                            </td>
+                            <td>
+                              <div style={{ fontSize: "0.8rem", color: "var(--text-secondary)" }}>
+                                {log.detalles && Object.keys(log.detalles).length > 0 ? (
+                                  Object.entries(log.detalles).map(([k, v]) => (
+                                    <div key={k}>
+                                      <strong>{k}:</strong> {typeof v === 'object' ? JSON.stringify(v) : String(v)}
+                                    </div>
+                                  ))
+                                ) : (
+                                  <span style={{ color: "var(--text-muted)" }}>Sin detalles adicionales</span>
+                                )}
+                              </div>
                             </td>
                           </tr>
                         ))
@@ -1235,5 +1373,65 @@ const styles = {
     borderRadius: "6px",
     color: "var(--text-primary)",
     fontSize: "0.8rem"
+  },
+  filterBar: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "16px",
+    padding: "16px",
+    alignItems: "flex-end",
+    backgroundColor: "var(--bg-secondary)",
+    border: "1px solid var(--border-color)",
+    borderRadius: "8px"
+  },
+  filterGroup: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "6px",
+    flex: "1 1 200px"
+  },
+  filterLabel: {
+    fontSize: "0.75rem",
+    color: "var(--text-secondary)",
+    fontWeight: "500"
+  },
+  filterInput: {
+    backgroundColor: "var(--bg-primary)",
+    border: "1px solid var(--border-color)",
+    padding: "8px 12px",
+    borderRadius: "6px",
+    color: "var(--text-primary)",
+    fontSize: "0.85rem",
+    outline: "none"
+  },
+  filterSearchBtn: {
+    backgroundColor: "rgba(6, 182, 212, 0.08)",
+    border: "1px solid rgba(6, 182, 212, 0.3)",
+    color: "var(--accent-cyan, #06b6d4)",
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+    padding: "8px 16px",
+    borderRadius: "6px",
+    cursor: "pointer",
+    fontWeight: "500",
+    fontSize: "0.85rem",
+    transition: "all 0.2s ease",
+    height: "38px"
+  },
+  filterResetBtn: {
+    backgroundColor: "transparent",
+    border: "1px solid var(--border-color)",
+    color: "var(--text-secondary)",
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+    padding: "8px 16px",
+    borderRadius: "6px",
+    cursor: "pointer",
+    fontWeight: "500",
+    fontSize: "0.85rem",
+    transition: "all 0.2s ease",
+    height: "38px"
   }
 };
