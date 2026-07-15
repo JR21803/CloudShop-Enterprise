@@ -1,5 +1,15 @@
 module "iam" {
   source = "./modules/iam"
+
+  aws_region           = var.aws_region
+  users_table          = module.dynamodb.users_table
+  products_table       = module.dynamodb.products_table
+  stores_table         = module.dynamodb.stores_table
+  cart_table           = module.dynamodb.cart_table
+  orders_table         = module.dynamodb.orders_table
+  audit_table          = module.dynamodb.audit_table
+  eventbridge_bus_name = "cloudshop-events"
+  ses_from_email       = var.ses_from_email
 }
 
 module "cognito" {

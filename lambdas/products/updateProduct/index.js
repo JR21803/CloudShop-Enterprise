@@ -4,6 +4,7 @@ const {
    GetCommand,
    UpdateCommand
 } = require("@aws-sdk/lib-dynamodb");
+const { getRole, hasRole } = require("../../roleAuth");
 
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
@@ -15,10 +16,27 @@ const corsHeaders = {
 };
 
 exports.handler = async (event) => {
-    const claims = event.requestContext.authorizer.claims;
+    const claims = event.requestContext?.authorizer?.claims || {};
+    const role = getRole(claims);
     const ownerId = claims.sub;
     const productId = event.pathParameters.id;
-    const body = JSON.parse(event.body);
+    const body = JSON.parse(event.body || "{}") || {};
+
+    if (!claims.sub) {
+        return {
+            statusCode: 401,
+            headers: corsHeaders,
+            body: JSON.stringify({ message: "Autenticación requerida" })
+        };
+    }
+
+    if (!hasRole(claims, ["Administrador", "Operador"])) {
+        return {
+            statusCode: 403,
+            headers: corsHeaders,
+            body: JSON.stringify({ message: "Solo Administrador u Operador pueden actualizar productos" })
+        };
+    }
 
     const existing = await docClient.send(
         new GetCommand({
@@ -27,7 +45,7 @@ exports.handler = async (event) => {
         })
     );
 
-    if (!existing.Item || existing.Item.ownerId !== ownerId) {
+    if (!existing.Item || (role !== "Administrador" && existing.Item.ownerId !== ownerId)) {
         return {
             statusCode: 403,
             headers: corsHeaders,

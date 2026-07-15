@@ -1,33 +1,47 @@
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
-
-
-const {
-    DynamoDBDocumentClient,
-    GetCommand,
-    UpdateCommand
-} = require("@aws-sdk/lib-dynamodb");
-
+const { DynamoDBDocumentClient, GetCommand, UpdateCommand } = require("@aws-sdk/lib-dynamodb");
+const { getRole, hasRole } = require("../../roleAuth");
 
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
 
+const corsHeaders = {
+  "Content-Type": "application/json",
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "Content-Type,Authorization",
+  "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
+};
+
 exports.handler = async (event) => {
     try {
+        const claims = event.requestContext?.authorizer?.claims || {};
+        const role = getRole(claims);
         const userId = event.pathParameters.userId;
 
-        const existingUser = await docClient.send(
+        if (!claims.sub) {
+            return {
+                statusCode: 401,
+                headers: corsHeaders,
+                body: JSON.stringify({ message: "Autenticación requerida" })
+            };
+        }
 
-            new GetCommand({
-                TableName: process.env.USERS_TABLE,
-                Key: {
-                    userId: userId
-                }
-            })
+        if (!hasRole(claims, ["Administrador"])) {
+            return {
+                statusCode: 403,
+                headers: corsHeaders,
+                body: JSON.stringify({ message: "Solo el Administrador puede desactivar usuarios" })
+            };
+        }
+
+        const existingUser = await docClient.send(
+            new GetCommand({ TableName: process.env.USERS_TABLE, Key: { userId } })
         );
 
-        if (!ExistingUser.Item) {
+        if (!existingUser.Item) {
             return {
                 statusCode: 404,
+                headers: corsHeaders,
                 body: JSON.stringify({ message: "Usuario no encontrado" })
             };
         }
@@ -35,33 +49,23 @@ exports.handler = async (event) => {
         await docClient.send(
             new UpdateCommand({
                 TableName: process.env.USERS_TABLE,
-                Key: {
-                    userId: userId
-                },
-
+                Key: { userId },
                 UpdateExpression: "SET #s = :status",
-
-                ExpressionAttributeNames: {
-                    "#s": "status"
-                },
-
-                ExpressionAttributeValues: {
-                    ":status": "inactive"
-                }
+                ExpressionAttributeNames: { "#s": "status" },
+                ExpressionAttributeValues: { ":status": "inactive" }
             })
         );
 
         return {
             statusCode: 200,
+            headers: corsHeaders,
             body: JSON.stringify({ message: "Usuario desactivado correctamente" })
         };
-
-    }
-
-    catch (error) {
+    } catch (error) {
         console.log(error);
         return {
             statusCode: 500,
+            headers: corsHeaders,
             body: JSON.stringify({ message: "Error del servidor" })
         };
     }

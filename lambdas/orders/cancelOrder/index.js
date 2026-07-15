@@ -1,5 +1,6 @@
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
 const { DynamoDBDocumentClient, GetCommand, UpdateCommand } = require("@aws-sdk/lib-dynamodb");
+const { getRole, hasRole } = require("../../roleAuth");
 
 const ddbClient = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(ddbClient);
@@ -20,14 +21,22 @@ const CANCELLABLE_BY_CLIENT = ["Pendiente"];
 exports.handler = async (event) => {
   try {
     const claims = event.requestContext?.authorizer?.claims || {};
-    const role = claims["custom:role"] || claims.role;
+    const role = getRole(claims);
     const userId = claims.sub;
 
-    if (!role) {
+    if (!claims.sub) {
+      return {
+        statusCode: 401,
+        headers: CORS_HEADERS,
+        body: JSON.stringify({ message: "Autenticación requerida" }),
+      };
+    }
+
+    if (!hasRole(claims, ["Cliente", "Administrador", "Operador"])) {
       return {
         statusCode: 403,
         headers: CORS_HEADERS,
-        body: JSON.stringify({ message: "No autenticado" }),
+        body: JSON.stringify({ message: "No tienes permisos para cancelar pedidos" }),
       };
     }
 
@@ -58,6 +67,15 @@ exports.handler = async (event) => {
         statusCode: 403,
         headers: CORS_HEADERS,
         body: JSON.stringify({ message: "No tienes permisos para cancelar este pedido" }),
+      };
+    }
+
+    // Solo el Administrador o el propio Cliente pueden cancelar; el Operador no participa en este flujo
+    if (role === "Operador") {
+      return {
+        statusCode: 403,
+        headers: CORS_HEADERS,
+        body: JSON.stringify({ message: "El Operador no puede cancelar pedidos; solo el Administrador o el Cliente propietario pueden hacerlo" }),
       };
     }
 

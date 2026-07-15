@@ -1,5 +1,6 @@
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
 const { DynamoDBDocumentClient, ScanCommand } = require("@aws-sdk/lib-dynamodb");
+const { getRole, hasRole } = require("../../roleAuth");
 
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
@@ -12,6 +13,25 @@ const corsHeaders = {
 
 exports.handler = async (event) => {
     try {
+        const claims = event.requestContext?.authorizer?.claims || {};
+        const role = getRole(claims);
+
+        if (!claims.sub) {
+            return {
+                statusCode: 401,
+                headers: corsHeaders,
+                body: JSON.stringify({ message: "Autenticación requerida" })
+            };
+        }
+
+        if (!role || !hasRole(claims, ["Administrador", "Operador", "Cliente"])) {
+            return {
+                statusCode: 403,
+                headers: corsHeaders,
+                body: JSON.stringify({ message: "Rol no autorizado para consultar tiendas" })
+            };
+        }
+
         const { Items } = await docClient.send(
             new ScanCommand({
                 TableName: process.env.STORES_TABLE

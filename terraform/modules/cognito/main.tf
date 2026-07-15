@@ -27,21 +27,21 @@ resource "aws_cognito_user_pool_client" "client" {
 
 resource "aws_cognito_user_group" "admins" {
   user_pool_id = aws_cognito_user_pool.users.id
-  name         = "CloudShopAdmins"
-  description  = "Administrators of CloudShop"
+  name         = "CloudShopAdministradores"
+  description  = "Administradores de CloudShop"
   precedence   = 1
 }
 
 resource "aws_cognito_user_group" "operators" {
   user_pool_id = aws_cognito_user_pool.users.id
-  name         = "CloudShopOperators"
-  description  = "Operators of CloudShop"
+  name         = "CloudShopOperadores"
+  description  = "Operadores de CloudShop"
   precedence   = 2
 }
 
 resource "aws_cognito_user_group" "clients" {
   user_pool_id = aws_cognito_user_pool.users.id
-  name         = "CloudShopClients"
-  description  = "Customers of CloudShop"
+  name         = "CloudShopClientes"
+  description  = "Clientes de CloudShop"
   precedence   = 3
 }

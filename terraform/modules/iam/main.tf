@@ -1,3 +1,14 @@
+locals {
+  dynamodb_table_arns = [
+    "arn:aws:dynamodb:${var.aws_region}:*:table/${var.users_table}",
+    "arn:aws:dynamodb:${var.aws_region}:*:table/${var.products_table}",
+    "arn:aws:dynamodb:${var.aws_region}:*:table/${var.stores_table}",
+    "arn:aws:dynamodb:${var.aws_region}:*:table/${var.cart_table}",
+    "arn:aws:dynamodb:${var.aws_region}:*:table/${var.orders_table}",
+    "arn:aws:dynamodb:${var.aws_region}:*:table/${var.audit_table}"
+  ]
+}
+
 resource "aws_iam_role" "lambda_role" {
   name = "cloudshop-lambda-role"
   assume_role_policy = jsonencode({
@@ -34,7 +45,7 @@ resource "aws_iam_policy" "dynamodb_policy" {
           "dynamodb:Scan",
           "dynamodb:Query"
         ]
-        Resource = "*"
+        Resource = local.dynamodb_table_arns
       }
     ]
   })
@@ -54,7 +65,7 @@ resource "aws_iam_policy" "eventbridge_policy" {
       {
         Effect   = "Allow"
         Action   = ["events:PutEvents"]
-        Resource = "arn:aws:events:*:*:event-bus/cloudshop-events"
+        Resource = "arn:aws:events:${var.aws_region}:*:event-bus/${var.eventbridge_bus_name}"
       }
     ]
   })
@@ -74,7 +85,7 @@ resource "aws_iam_policy" "ses_policy" {
       {
         Effect   = "Allow"
         Action   = ["ses:SendEmail", "ses:SendRawEmail"]
-        Resource = "*"
+        Resource = "arn:aws:ses:${var.aws_region}:*:identity/${var.ses_from_email}"
       }
     ]
   })

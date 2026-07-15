@@ -3,6 +3,7 @@ const {
    DynamoDBDocumentClient,
    GetCommand
 } = require("@aws-sdk/lib-dynamodb");
+const { getRole } = require("../../roleAuth");
 
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
@@ -14,9 +15,26 @@ const corsHeaders = {
 };
 
 exports.handler = async (event) => {
-    const claims = event.requestContext.authorizer.claims;
+    const claims = event.requestContext?.authorizer?.claims || {};
+    const role = getRole(claims);
     const ownerId = claims.sub;
     const productId = event.pathParameters.id;
+
+    if (!claims.sub) {
+        return {
+            statusCode: 401,
+            headers: corsHeaders,
+            body: JSON.stringify({ message: "Autenticación requerida" })
+        };
+    }
+
+    if (!role) {
+        return {
+            statusCode: 403,
+            headers: corsHeaders,
+            body: JSON.stringify({ message: "Rol no autorizado" })
+        };
+    }
 
     const result = await docClient.send(
         new GetCommand({

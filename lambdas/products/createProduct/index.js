@@ -1,6 +1,7 @@
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
 const {DynamoDBDocumentClient, PutCommand} = require("@aws-sdk/lib-dynamodb");
 const { v4: uuidv4 } = require("uuid");
+const { getRole, hasRole } = require("../../roleAuth");
 
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
@@ -12,9 +13,26 @@ const corsHeaders = {
 };
 
 exports.handler = async (event) => {
-    const body = JSON.parse(event.body);
-    const claims = event.requestContext.authorizer.claims;
+    const body = JSON.parse(event.body || "{}") || {};
+    const claims = event.requestContext?.authorizer?.claims || {};
+    const role = getRole(claims);
     const ownerId = claims.sub;
+
+    if (!claims.sub) {
+        return {
+            statusCode: 401,
+            headers: corsHeaders,
+            body: JSON.stringify({ message: "Autenticación requerida" })
+        };
+    }
+
+    if (!hasRole(claims, ["Administrador"])) {
+        return {
+            statusCode: 403,
+            headers: corsHeaders,
+            body: JSON.stringify({ message: "Solo el Administrador puede crear productos" })
+        };
+    }
 
     const product = {
         productId: uuidv4(),

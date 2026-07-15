@@ -1,5 +1,6 @@
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
 const { DynamoDBDocumentClient, GetCommand, UpdateCommand } = require("@aws-sdk/lib-dynamodb");
+const { getRole, hasRole } = require("../../roleAuth");
 
 const ddbClient = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(ddbClient);
@@ -27,11 +28,18 @@ const VALID_TRANSITIONS = {
 exports.handler = async (event) => {
   try {
     const claims = event.requestContext?.authorizer?.claims || {};
-    const role = claims["custom:role"] || claims.role;
+    const role = getRole(claims);
     const userId = claims.sub;
 
-    // Solo Administrador y Operador pueden cambiar estado de pedidos
-    if (!["Administrador", "Operador"].includes(role)) {
+    if (!claims.sub) {
+      return {
+        statusCode: 401,
+        headers: CORS_HEADERS,
+        body: JSON.stringify({ message: "Autenticación requerida" }),
+      };
+    }
+
+    if (!hasRole(claims, ["Administrador", "Operador"])) {
       return {
         statusCode: 403,
         headers: CORS_HEADERS,
@@ -78,6 +86,15 @@ exports.handler = async (event) => {
         statusCode: 404,
         headers: CORS_HEADERS,
         body: JSON.stringify({ message: "Pedido no encontrado" }),
+      };
+    }
+
+    // El Operador solo puede avanzar pedidos, pero no cancelarlos ni modificar pedidos de otros usuarios
+    if (role === "Operador" && newStatus === "Cancelado") {
+      return {
+        statusCode: 403,
+        headers: CORS_HEADERS,
+        body: JSON.stringify({ message: "El Operador no puede cancelar pedidos; solo el Administrador puede cancelar" }),
       };
     }
 

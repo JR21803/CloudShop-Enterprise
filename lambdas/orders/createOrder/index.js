@@ -2,6 +2,7 @@ const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
 const { DynamoDBDocumentClient, GetCommand, PutCommand, UpdateCommand } = require("@aws-sdk/lib-dynamodb");
 const { EventBridgeClient, PutEventsCommand } = require("@aws-sdk/client-eventbridge");
 const { v4: uuidv4 } = require("uuid");
+const { getRole, hasRole } = require("../../roleAuth");
 
 const ddbClient = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(ddbClient);
@@ -21,12 +22,19 @@ const CORS_HEADERS = {
 exports.handler = async (event) => {
   try {
     const claims = event.requestContext?.authorizer?.claims || {};
-    const role = claims["custom:role"] || claims.role;
+    const role = getRole(claims);
     const userId = claims.sub;
     const userEmail = claims.email;
 
-    // Solo Clientes pueden crear pedidos desde el storefront
-    if (!role || !["Cliente", "Administrador", "Operador"].includes(role)) {
+    if (!claims.sub) {
+      return {
+        statusCode: 401,
+        headers: CORS_HEADERS,
+        body: JSON.stringify({ message: "Autenticación requerida" }),
+      };
+    }
+
+    if (!hasRole(claims, ["Cliente", "Administrador", "Operador"])) {
       return {
         statusCode: 403,
         headers: CORS_HEADERS,

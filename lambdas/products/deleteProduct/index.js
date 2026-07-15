@@ -1,5 +1,6 @@
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
 const {DynamoDBDocumentClient, GetCommand, UpdateCommand } = require("@aws-sdk/lib-dynamodb");
+const { getRole, hasRole } = require("../../roleAuth");
 
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
@@ -11,9 +12,35 @@ const corsHeaders = {
 };
 
 exports.handler = async (event) => {
-    const claims = event.requestContext.authorizer.claims;
+    const claims = event.requestContext?.authorizer?.claims || {};
+    const role = getRole(claims);
     const ownerId = claims.sub;
     const productId = event.pathParameters.id;
+
+    if (!claims.sub) {
+        return {
+            statusCode: 401,
+            headers: corsHeaders,
+            body: JSON.stringify({ message: "Autenticación requerida" })
+        };
+    }
+
+    if (!hasRole(claims, ["Administrador"])) {
+        return {
+            statusCode: 403,
+            headers: corsHeaders,
+            body: JSON.stringify({ message: "Solo el Administrador puede eliminar productos" })
+        };
+    }
+
+    // Garantizar que el Operador y Cliente nunca puedan llegar a este flujo de eliminación
+    if (role === "Operador" || role === "Cliente") {
+        return {
+            statusCode: 403,
+            headers: corsHeaders,
+            body: JSON.stringify({ message: "Solo el Administrador puede eliminar productos" })
+        };
+    }
 
     const existing = await docClient.send(
         new GetCommand({
@@ -22,7 +49,7 @@ exports.handler = async (event) => {
         })
     );
 
-    if (!existing.Item || existing.Item.ownerId !== ownerId) {
+    if (!existing.Item || (role !== "Administrador" && existing.Item.ownerId !== ownerId)) {
         return {
             statusCode: 403,
             headers: corsHeaders,

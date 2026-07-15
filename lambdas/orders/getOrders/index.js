@@ -1,5 +1,6 @@
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
 const { DynamoDBDocumentClient, ScanCommand } = require("@aws-sdk/lib-dynamodb");
+const { getRole, hasRole } = require("../../roleAuth");
 
 const ddbClient = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(ddbClient);
@@ -16,14 +17,22 @@ const CORS_HEADERS = {
 exports.handler = async (event) => {
   try {
     const claims = event.requestContext?.authorizer?.claims || {};
-    const role = claims["custom:role"] || claims.role;
+    const role = getRole(claims);
     const userId = claims.sub;
 
-    if (!role) {
+    if (!claims.sub) {
+      return {
+        statusCode: 401,
+        headers: CORS_HEADERS,
+        body: JSON.stringify({ message: "Autenticación requerida" }),
+      };
+    }
+
+    if (!hasRole(claims, ["Cliente", "Administrador", "Operador"])) {
       return {
         statusCode: 403,
         headers: CORS_HEADERS,
-        body: JSON.stringify({ message: "No autenticado" }),
+        body: JSON.stringify({ message: "No tienes permisos para consultar pedidos" }),
       };
     }
 
@@ -33,15 +42,24 @@ exports.handler = async (event) => {
       // El cliente solo ve sus propios pedidos
       scanParams.FilterExpression = "userId = :uid";
       scanParams.ExpressionAttributeValues = { ":uid": userId };
-    } else if (role === "Administrador" || role === "Operador") {
-      // Admin y Operador ven todos los pedidos
-      // Filtro opcional por status vía query string
+    } else if (role === "Administrador") {
+      // El Administrador ve todos los pedidos
       const statusFilter = event.queryStringParameters?.status;
       if (statusFilter) {
         scanParams.FilterExpression = "#s = :status";
         scanParams.ExpressionAttributeNames = { "#s": "status" };
         scanParams.ExpressionAttributeValues = { ":status": statusFilter };
       }
+    } else if (role === "Operador") {
+      // El Operador solo ve pedidos que requieren gestión operativa, no reportes ni usuarios
+      scanParams.FilterExpression = "#s IN (:pending, :confirmed, :preparing, :sent)";
+      scanParams.ExpressionAttributeNames = { "#s": "status" };
+      scanParams.ExpressionAttributeValues = {
+        ":pending": "Pendiente",
+        ":confirmed": "Confirmado",
+        ":preparing": "En preparación",
+        ":sent": "Enviado",
+      };
     } else {
       return {
         statusCode: 403,
