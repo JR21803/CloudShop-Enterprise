@@ -17,7 +17,7 @@ exports.handler = async (event) => {
         const result = await docClient.send(
 
             new GetCommand({
-                TableName: "Users",
+                TableName: process.env.USERS_TABLE,
                 Key: {
                     userId: userId
                 }

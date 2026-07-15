@@ -24,7 +24,7 @@ exports.handler = async (event) => {
 
         const { Attributes } = await docClient.send(
             new UpdateCommand({
-                TableName: "Stores",
+                TableName: process.env.STORES_TABLE,
                 Key: { storeId },
                 UpdateExpression: "set #status = :status",
                 ExpressionAttributeNames: {

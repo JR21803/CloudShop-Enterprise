@@ -22,7 +22,7 @@ exports.handler = async (event) => {
 
     const existing = await docClient.send(
         new GetCommand({
-            TableName: "Products",
+            TableName: process.env.PRODUCTS_TABLE,
             Key: { productId }
         })
     );
@@ -37,7 +37,7 @@ exports.handler = async (event) => {
 
     const result = await docClient.send(
         new UpdateCommand({
-            TableName: "Products",
+            TableName: process.env.PRODUCTS_TABLE,
             Key: { productId },
             UpdateExpression:
                 "SET #n = :name, description = :description, category = :category, price = :price, stock = :stock",

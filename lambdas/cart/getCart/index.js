@@ -17,7 +17,7 @@ exports.handler = async (event) => {
 
         const { Item } = await docClient.send(
             new GetCommand({
-                TableName: "Cart",
+                TableName: process.env.CART_TABLE,
                 Key: { cartId }
             })
         );

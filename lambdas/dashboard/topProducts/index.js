@@ -18,7 +18,7 @@ exports.handler = async () => {
 
             new ScanCommand({
 
-                TableName: "Orders"
+                TableName: process.env.ORDERS_TABLE
 
             })
 

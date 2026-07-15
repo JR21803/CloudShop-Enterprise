@@ -7,8 +7,8 @@ const ddbClient = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(ddbClient);
 const ebClient = new EventBridgeClient({});
 
-const ORDERS_TABLE = "Orders";
-const PRODUCTS_TABLE = "Products";
+const ORDERS_TABLE = process.env.ORDERS_TABLE;
+const PRODUCTS_TABLE = process.env.PRODUCTS_TABLE;
 const EVENT_BUS_NAME = process.env.EVENT_BUS_NAME || "cloudshop-events";
 
 const CORS_HEADERS = {

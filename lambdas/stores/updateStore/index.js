@@ -52,7 +52,7 @@ exports.handler = async (event) => {
         updateExpression = updateExpression.slice(0, -2); // Remove trailing comma and space
 
         const commandParams = {
-            TableName: "Stores",
+            TableName: process.env.STORES_TABLE,
             Key: { storeId },
             UpdateExpression: updateExpression,
             ExpressionAttributeValues: expressionAttributeValues,

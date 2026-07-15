@@ -98,7 +98,10 @@ resource "aws_cloudwatch_dashboard" "cloudshop" {
     widgets = [
       {
         type   = "metric"
-        x = 0; y = 0; width = 12; height = 6
+        x      = 0
+        y      = 0
+        width  = 12
+        height = 6
         properties = {
           title   = "API Gateway - Latencia Promedio (ms)"
           region  = var.aws_region
@@ -110,13 +113,16 @@ resource "aws_cloudwatch_dashboard" "cloudshop" {
       },
       {
         type   = "metric"
-        x = 12; y = 0; width = 12; height = 6
+        x      = 12
+        y      = 0
+        width  = 12
+        height = 6
         properties = {
-          title   = "API Gateway - Errores 4XX / 5XX"
-          region  = var.aws_region
-          view    = "timeSeries"
-          period  = 60
-          stat    = "Sum"
+          title  = "API Gateway - Errores 4XX / 5XX"
+          region = var.aws_region
+          view   = "timeSeries"
+          period = 60
+          stat   = "Sum"
           metrics = [
             ["AWS/ApiGateway", "4XXError", "ApiName", "CloudShopAPI", "Stage", "dev"],
             ["AWS/ApiGateway", "5XXError", "ApiName", "CloudShopAPI", "Stage", "dev"],
@@ -125,13 +131,16 @@ resource "aws_cloudwatch_dashboard" "cloudshop" {
       },
       {
         type   = "metric"
-        x = 0; y = 6; width = 24; height = 6
+        x      = 0
+        y      = 6
+        width  = 24
+        height = 6
         properties = {
-          title   = "Lambda Pedidos - Errores e Invocaciones"
-          region  = var.aws_region
-          view    = "timeSeries"
-          period  = 60
-          stat    = "Sum"
+          title  = "Lambda Pedidos - Errores e Invocaciones"
+          region = var.aws_region
+          view   = "timeSeries"
+          period = 60
+          stat   = "Sum"
           metrics = [
             ["AWS/Lambda", "Errors", "FunctionName", "createOrder"],
             ["AWS/Lambda", "Errors", "FunctionName", "cancelOrder"],

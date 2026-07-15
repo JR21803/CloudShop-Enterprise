@@ -5,7 +5,7 @@ const { v4: uuidv4 } = require("uuid");
 const ddbClient = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(ddbClient);
 
-const AUDIT_TABLE = "Audit";
+const AUDIT_TABLE = process.env.AUDIT_TABLE;
 
 // Mapeo de EventBridge detail-type → nombre de acción en auditoría
 const ACTION_MAP = {

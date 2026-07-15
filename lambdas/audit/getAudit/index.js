@@ -4,7 +4,7 @@ const { DynamoDBDocumentClient, ScanCommand } = require("@aws-sdk/lib-dynamodb")
 const ddbClient = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(ddbClient);
 
-const AUDIT_TABLE = "Audit";
+const AUDIT_TABLE = process.env.AUDIT_TABLE;
 
 const CORS_HEADERS = {
   "Content-Type": "application/json",

@@ -15,7 +15,7 @@ exports.handler = async (event) => {
         const result = await docClient.send(
 
             new ScanCommand({
-                TableName: "Products"
+                TableName: process.env.PRODUCTS_TABLE
             })
         );
 

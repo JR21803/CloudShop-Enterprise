@@ -4,8 +4,8 @@ const { DynamoDBDocumentClient, GetCommand, UpdateCommand } = require("@aws-sdk/
 const ddbClient = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(ddbClient);
 
-const ORDERS_TABLE = "Orders";
-const PRODUCTS_TABLE = "Products";
+const ORDERS_TABLE = process.env.ORDERS_TABLE;
+const PRODUCTS_TABLE = process.env.PRODUCTS_TABLE;
 
 const CORS_HEADERS = {
   "Content-Type": "application/json",

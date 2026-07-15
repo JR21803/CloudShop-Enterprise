@@ -2,9 +2,9 @@ data "archive_file" "create_user" {
 
   type = "zip"
 
-  source_dir = "${path.root}/lambdas/users/createUser"
+  source_dir = "${path.root}/../lambdas/users/createUser"
 
-  output_path = "${path.root}/lambdas/users/createUser.zip"
+  output_path = "${path.root}/../lambdas/users/createUser.zip"
 
 }
 
@@ -22,15 +22,20 @@ resource "aws_lambda_function" "create_user" {
 
   role = var.lambda_role_arn
 
+  environment {
+    variables = {
+      USERS_TABLE = var.users_table
+    }
+  }
 }
 
 data "archive_file" "get_users" {
 
   type = "zip"
 
-  source_dir = "${path.root}/lambdas/users/getUsers"
+  source_dir = "${path.root}/../lambdas/users/getUsers"
 
-  output_path = "${path.root}/lambdas/users/getUsers.zip"
+  output_path = "${path.root}/../lambdas/users/getUsers.zip"
 
 }
 
@@ -38,9 +43,9 @@ data "archive_file" "get_user_by_id" {
 
   type = "zip"
 
-  source_dir = "${path.root}/lambdas/users/getUserById"
+  source_dir = "${path.root}/../lambdas/users/getUserById"
 
-  output_path = "${path.root}/lambdas/users/getUserById.zip"
+  output_path = "${path.root}/../lambdas/users/getUserById.zip"
 
 }
 
@@ -48,9 +53,9 @@ data "archive_file" "update_user" {
 
   type = "zip"
 
-  source_dir = "${path.root}/lambdas/users/updateUser"
+  source_dir = "${path.root}/../lambdas/users/updateUser"
 
-  output_path = "${path.root}/lambdas/users/updateUser.zip"
+  output_path = "${path.root}/../lambdas/users/updateUser.zip"
 
 }
 
@@ -58,9 +63,9 @@ data "archive_file" "deactivate_user" {
 
   type = "zip"
 
-  source_dir = "${path.root}/lambdas/users/deactivateUser"
+  source_dir = "${path.root}/../lambdas/users/deactivateUser"
 
-  output_path = "${path.root}/lambdas/users/deactivateUser.zip"
+  output_path = "${path.root}/../lambdas/users/deactivateUser.zip"
 
 }
 
@@ -78,6 +83,11 @@ resource "aws_lambda_function" "get_users" {
 
   role = var.lambda_role_arn
 
+  environment {
+    variables = {
+      USERS_TABLE = var.users_table
+    }
+  }
 }
 
 resource "aws_lambda_function" "get_user_by_id" {
@@ -94,6 +104,11 @@ resource "aws_lambda_function" "get_user_by_id" {
 
   role = var.lambda_role_arn
 
+  environment {
+    variables = {
+      USERS_TABLE = var.users_table
+    }
+  }
 }
 
 resource "aws_lambda_function" "update_user" {
@@ -110,6 +125,11 @@ resource "aws_lambda_function" "update_user" {
 
   role = var.lambda_role_arn
 
+  environment {
+    variables = {
+      USERS_TABLE = var.users_table
+    }
+  }
 }
 
 resource "aws_lambda_function" "deactivate_user" {
@@ -126,15 +146,20 @@ resource "aws_lambda_function" "deactivate_user" {
 
   role = var.lambda_role_arn
 
+  environment {
+    variables = {
+      USERS_TABLE = var.users_table
+    }
+  }
 }
 
 data "archive_file" "create_product" {
 
   type = "zip"
 
-  source_dir = "${path.root}/lambdas/products/createProduct"
+  source_dir = "${path.root}/../lambdas/products/createProduct"
 
-  output_path = "${path.root}/lambdas/products/createProduct.zip"
+  output_path = "${path.root}/../lambdas/products/createProduct.zip"
 
 }
 
@@ -152,15 +177,20 @@ resource "aws_lambda_function" "create_product" {
 
   role = var.lambda_role_arn
 
+  environment {
+    variables = {
+      PRODUCTS_TABLE = var.products_table
+    }
+  }
 }
 
 data "archive_file" "get_products" {
 
   type = "zip"
 
-  source_dir = "${path.root}/lambdas/products/getProducts"
+  source_dir = "${path.root}/../lambdas/products/getProducts"
 
-  output_path = "${path.root}/lambdas/products/getProducts.zip"
+  output_path = "${path.root}/../lambdas/products/getProducts.zip"
 
 }
 
@@ -168,9 +198,9 @@ data "archive_file" "get_product_by_id" {
 
   type = "zip"
 
-  source_dir = "${path.root}/lambdas/products/getProductById"
+  source_dir = "${path.root}/../lambdas/products/getProductById"
 
-  output_path = "${path.root}/lambdas/products/getProductById.zip"
+  output_path = "${path.root}/../lambdas/products/getProductById.zip"
 
 }
 
@@ -178,9 +208,9 @@ data "archive_file" "update_product" {
 
   type = "zip"
 
-  source_dir = "${path.root}/lambdas/products/updateProduct"
+  source_dir = "${path.root}/../lambdas/products/updateProduct"
 
-  output_path = "${path.root}/lambdas/products/updateProduct.zip"
+  output_path = "${path.root}/../lambdas/products/updateProduct.zip"
 
 }
 
@@ -188,13 +218,13 @@ data "archive_file" "delete_product" {
 
   type = "zip"
 
-  source_dir = "${path.root}/lambdas/products/deleteProduct"
+  source_dir = "${path.root}/../lambdas/products/deleteProduct"
 
-  output_path = "${path.root}/lambdas/products/deleteProduct.zip"
+  output_path = "${path.root}/../lambdas/products/deleteProduct.zip"
 
 }
 
-resource "aws_lambda_function" "get_Products" {
+resource "aws_lambda_function" "get_products" {
 
   function_name = "getProducts"
 
@@ -208,6 +238,11 @@ resource "aws_lambda_function" "get_Products" {
 
   role = var.lambda_role_arn
 
+  environment {
+    variables = {
+      PRODUCTS_TABLE = var.products_table
+    }
+  }
 }
 
 resource "aws_lambda_function" "get_product_by_id" {
@@ -224,6 +259,11 @@ resource "aws_lambda_function" "get_product_by_id" {
 
   role = var.lambda_role_arn
 
+  environment {
+    variables = {
+      PRODUCTS_TABLE = var.products_table
+    }
+  }
 }
 
 resource "aws_lambda_function" "update_product" {
@@ -240,6 +280,11 @@ resource "aws_lambda_function" "update_product" {
 
   role = var.lambda_role_arn
 
+  environment {
+    variables = {
+      PRODUCTS_TABLE = var.products_table
+    }
+  }
 }
 
 resource "aws_lambda_function" "delete_product" {
@@ -256,6 +301,11 @@ resource "aws_lambda_function" "delete_product" {
 
   role = var.lambda_role_arn
 
+  environment {
+    variables = {
+      PRODUCTS_TABLE = var.products_table
+    }
+  }
 }
 
 
@@ -263,9 +313,9 @@ data "archive_file" "total_sales" {
 
   type = "zip"
 
-  source_dir = "${path.root}/lambdas/dashboard/totalSales"
+  source_dir = "${path.root}/../lambdas/dashboard/totalSales"
 
-  output_path = "${path.root}/lambdas/dashboard/totalSales.zip"
+  output_path = "${path.root}/../lambdas/dashboard/totalSales.zip"
 
 }
 
@@ -283,15 +333,20 @@ resource "aws_lambda_function" "total_sales" {
 
   role = var.lambda_role_arn
 
+  environment {
+    variables = {
+      ORDERS_TABLE = var.orders_table
+    }
+  }
 }
 
 data "archive_file" "order_by_status" {
 
   type = "zip"
 
-  source_dir = "${path.root}/lambdas/dashboard/orderByStatus"
+  source_dir = "${path.root}/../lambdas/dashboard/ordersByStatus"
 
-  output_path = "${path.root}/lambdas/dashboard/orderByStatus.zip"
+  output_path = "${path.root}/../lambdas/dashboard/ordersByStatus.zip"
 
 }
 
@@ -309,6 +364,11 @@ resource "aws_lambda_function" "order_by_status" {
 
   role = var.lambda_role_arn
 
+  environment {
+    variables = {
+      ORDERS_TABLE = var.orders_table
+    }
+  }
 }
 
 
@@ -316,9 +376,9 @@ data "archive_file" "out_of_stock" {
 
   type = "zip"
 
-  source_dir = "${path.root}/lambdas/dashboard/outOfStock"
+  source_dir = "${path.root}/../lambdas/dashboard/outOfStock"
 
-  output_path = "${path.root}/lambdas/dashboard/outOfStock.zip"
+  output_path = "${path.root}/../lambdas/dashboard/outOfStock.zip"
 
 }
 
@@ -336,15 +396,20 @@ resource "aws_lambda_function" "out_of_stock" {
 
   role = var.lambda_role_arn
 
+  environment {
+    variables = {
+      PRODUCTS_TABLE = var.products_table
+    }
+  }
 }
 
 data "archive_file" "top_products" {
 
   type = "zip"
 
-  source_dir = "${path.root}/lambdas/dashboard/topProducts"
+  source_dir = "${path.root}/../lambdas/dashboard/topProducts"
 
-  output_path = "${path.root}/lambdas/dashboard/topProducts.zip"
+  output_path = "${path.root}/../lambdas/dashboard/topProducts.zip"
 
 }
 
@@ -362,15 +427,20 @@ resource "aws_lambda_function" "top_products" {
 
   role = var.lambda_role_arn
 
+  environment {
+    variables = {
+      ORDERS_TABLE = var.orders_table
+    }
+  }
 }
 
 data "archive_file" "top_customers" {
 
   type = "zip"
 
-  source_dir = "${path.root}/lambdas/dashboard/topCustomers"
+  source_dir = "${path.root}/../lambdas/dashboard/topCustomers"
 
-  output_path = "${path.root}/lambdas/dashboard/topCustomers.zip"
+  output_path = "${path.root}/../lambdas/dashboard/topCustomers.zip"
 
 }
 resource "aws_lambda_function" "top_customers" {
@@ -387,15 +457,20 @@ resource "aws_lambda_function" "top_customers" {
 
   role = var.lambda_role_arn
 
+  environment {
+    variables = {
+      ORDERS_TABLE = var.orders_table
+    }
+  }
 }
 
 data "archive_file" "sales_by_store" {
 
   type = "zip"
 
-  source_dir = "${path.root}/lambdas/dashboard/salesByStore"
+  source_dir = "${path.root}/../lambdas/dashboard/salesByStore"
 
-  output_path = "${path.root}/lambdas/dashboard/salesByStore.zip"
+  output_path = "${path.root}/../lambdas/dashboard/salesByStore.zip"
 
 }
 
@@ -413,12 +488,17 @@ resource "aws_lambda_function" "sales_by_store" {
 
   role = var.lambda_role_arn
 
+  environment {
+    variables = {
+      ORDERS_TABLE = var.orders_table
+    }
+  }
 }
 
 data "archive_file" "create_store" {
   type        = "zip"
-  source_dir  = "${path.root}/lambdas/stores/createStore"
-  output_path = "${path.root}/lambdas/stores/createStore.zip"
+  source_dir  = "${path.root}/../lambdas/stores/createStore"
+  output_path = "${path.root}/../lambdas/stores/createStore.zip"
 }
 
 resource "aws_lambda_function" "create_store" {
@@ -432,8 +512,8 @@ resource "aws_lambda_function" "create_store" {
 
 data "archive_file" "get_stores" {
   type        = "zip"
-  source_dir  = "${path.root}/lambdas/stores/getStores"
-  output_path = "${path.root}/lambdas/stores/getStores.zip"
+  source_dir  = "${path.root}/../lambdas/stores/getStores"
+  output_path = "${path.root}/../lambdas/stores/getStores.zip"
 }
 
 resource "aws_lambda_function" "get_stores" {
@@ -447,8 +527,8 @@ resource "aws_lambda_function" "get_stores" {
 
 data "archive_file" "get_store_by_id" {
   type        = "zip"
-  source_dir  = "${path.root}/lambdas/stores/getStoreById"
-  output_path = "${path.root}/lambdas/stores/getStoreById.zip"
+  source_dir  = "${path.root}/../lambdas/stores/getStoreById"
+  output_path = "${path.root}/../lambdas/stores/getStoreById.zip"
 }
 
 resource "aws_lambda_function" "get_store_by_id" {
@@ -462,8 +542,8 @@ resource "aws_lambda_function" "get_store_by_id" {
 
 data "archive_file" "update_store" {
   type        = "zip"
-  source_dir  = "${path.root}/lambdas/stores/updateStore"
-  output_path = "${path.root}/lambdas/stores/updateStore.zip"
+  source_dir  = "${path.root}/../lambdas/stores/updateStore"
+  output_path = "${path.root}/../lambdas/stores/updateStore.zip"
 }
 
 resource "aws_lambda_function" "update_store" {
@@ -477,8 +557,8 @@ resource "aws_lambda_function" "update_store" {
 
 data "archive_file" "deactivate_store" {
   type        = "zip"
-  source_dir  = "${path.root}/lambdas/stores/deactivateStore"
-  output_path = "${path.root}/lambdas/stores/deactivateStore.zip"
+  source_dir  = "${path.root}/../lambdas/stores/deactivateStore"
+  output_path = "${path.root}/../lambdas/stores/deactivateStore.zip"
 }
 
 resource "aws_lambda_function" "deactivate_store" {
@@ -491,8 +571,8 @@ resource "aws_lambda_function" "deactivate_store" {
 }
 data "archive_file" "get_cart" {
   type        = "zip"
-  source_dir  = "${path.root}/lambdas/cart/getCart"
-  output_path = "${path.root}/lambdas/cart/getCart.zip"
+  source_dir  = "${path.root}/../lambdas/cart/getCart"
+  output_path = "${path.root}/../lambdas/cart/getCart.zip"
 }
 
 resource "aws_lambda_function" "get_cart" {
@@ -506,8 +586,8 @@ resource "aws_lambda_function" "get_cart" {
 
 data "archive_file" "add_product" {
   type        = "zip"
-  source_dir  = "${path.root}/lambdas/cart/addProduct"
-  output_path = "${path.root}/lambdas/cart/addProduct.zip"
+  source_dir  = "${path.root}/../lambdas/cart/addProduct"
+  output_path = "${path.root}/../lambdas/cart/addProduct.zip"
 }
 
 resource "aws_lambda_function" "add_product" {
@@ -521,8 +601,8 @@ resource "aws_lambda_function" "add_product" {
 
 data "archive_file" "update_quantity" {
   type        = "zip"
-  source_dir  = "${path.root}/lambdas/cart/updateQuantity"
-  output_path = "${path.root}/lambdas/cart/updateQuantity.zip"
+  source_dir  = "${path.root}/../lambdas/cart/updateQuantity"
+  output_path = "${path.root}/../lambdas/cart/updateQuantity.zip"
 }
 
 resource "aws_lambda_function" "update_quantity" {
@@ -536,8 +616,8 @@ resource "aws_lambda_function" "update_quantity" {
 
 data "archive_file" "remove_product" {
   type        = "zip"
-  source_dir  = "${path.root}/lambdas/cart/removeProduct"
-  output_path = "${path.root}/lambdas/cart/removeProduct.zip"
+  source_dir  = "${path.root}/../lambdas/cart/removeProduct"
+  output_path = "${path.root}/../lambdas/cart/removeProduct.zip"
 }
 
 resource "aws_lambda_function" "remove_product" {
@@ -551,8 +631,8 @@ resource "aws_lambda_function" "remove_product" {
 
 data "archive_file" "clear_cart" {
   type        = "zip"
-  source_dir  = "${path.root}/lambdas/cart/clearCart"
-  output_path = "${path.root}/lambdas/cart/clearCart.zip"
+  source_dir  = "${path.root}/../lambdas/cart/clearCart"
+  output_path = "${path.root}/../lambdas/cart/clearCart.zip"
 }
 
 resource "aws_lambda_function" "clear_cart" {
@@ -570,8 +650,8 @@ resource "aws_lambda_function" "clear_cart" {
 
 data "archive_file" "create_order" {
   type        = "zip"
-  source_dir  = "${path.root}/lambdas/orders/createOrder"
-  output_path = "${path.root}/lambdas/orders/createOrder.zip"
+  source_dir  = "${path.root}/../lambdas/orders/createOrder"
+  output_path = "${path.root}/../lambdas/orders/createOrder.zip"
 }
 
 resource "aws_lambda_function" "create_order" {
@@ -582,14 +662,18 @@ resource "aws_lambda_function" "create_order" {
   handler          = "index.handler"
   role             = var.lambda_role_arn
   environment {
-    variables = { EVENT_BUS_NAME = "cloudshop-events" }
+    variables = {
+      EVENT_BUS_NAME = "cloudshop-events"
+      ORDERS_TABLE   = var.orders_table
+      PRODUCTS_TABLE = var.products_table
+    }
   }
 }
 
 data "archive_file" "get_orders" {
   type        = "zip"
-  source_dir  = "${path.root}/lambdas/orders/getOrders"
-  output_path = "${path.root}/lambdas/orders/getOrders.zip"
+  source_dir  = "${path.root}/../lambdas/orders/getOrders"
+  output_path = "${path.root}/../lambdas/orders/getOrders.zip"
 }
 
 resource "aws_lambda_function" "get_orders" {
@@ -603,8 +687,8 @@ resource "aws_lambda_function" "get_orders" {
 
 data "archive_file" "get_order_by_id" {
   type        = "zip"
-  source_dir  = "${path.root}/lambdas/orders/getOrderById"
-  output_path = "${path.root}/lambdas/orders/getOrderById.zip"
+  source_dir  = "${path.root}/../lambdas/orders/getOrderById"
+  output_path = "${path.root}/../lambdas/orders/getOrderById.zip"
 }
 
 resource "aws_lambda_function" "get_order_by_id" {
@@ -618,8 +702,8 @@ resource "aws_lambda_function" "get_order_by_id" {
 
 data "archive_file" "update_order_status" {
   type        = "zip"
-  source_dir  = "${path.root}/lambdas/orders/updateOrderStatus"
-  output_path = "${path.root}/lambdas/orders/updateOrderStatus.zip"
+  source_dir  = "${path.root}/../lambdas/orders/updateOrderStatus"
+  output_path = "${path.root}/../lambdas/orders/updateOrderStatus.zip"
 }
 
 resource "aws_lambda_function" "update_order_status" {
@@ -633,8 +717,8 @@ resource "aws_lambda_function" "update_order_status" {
 
 data "archive_file" "cancel_order" {
   type        = "zip"
-  source_dir  = "${path.root}/lambdas/orders/cancelOrder"
-  output_path = "${path.root}/lambdas/orders/cancelOrder.zip"
+  source_dir  = "${path.root}/../lambdas/orders/cancelOrder"
+  output_path = "${path.root}/../lambdas/orders/cancelOrder.zip"
 }
 
 resource "aws_lambda_function" "cancel_order" {
@@ -652,8 +736,8 @@ resource "aws_lambda_function" "cancel_order" {
 
 data "archive_file" "get_audit" {
   type        = "zip"
-  source_dir  = "${path.root}/lambdas/audit/getAudit"
-  output_path = "${path.root}/lambdas/audit/getAudit.zip"
+  source_dir  = "${path.root}/../lambdas/audit/getAudit"
+  output_path = "${path.root}/../lambdas/audit/getAudit.zip"
 }
 
 resource "aws_lambda_function" "get_audit" {
@@ -667,8 +751,8 @@ resource "aws_lambda_function" "get_audit" {
 
 data "archive_file" "process_audit_event" {
   type        = "zip"
-  source_dir  = "${path.root}/lambdas/audit/processAuditEvent"
-  output_path = "${path.root}/lambdas/audit/processAuditEvent.zip"
+  source_dir  = "${path.root}/../lambdas/audit/processAuditEvent"
+  output_path = "${path.root}/../lambdas/audit/processAuditEvent.zip"
 }
 
 resource "aws_lambda_function" "process_audit_event" {
@@ -682,8 +766,8 @@ resource "aws_lambda_function" "process_audit_event" {
 
 data "archive_file" "send_email" {
   type        = "zip"
-  source_dir  = "${path.root}/lambdas/notifications/sendEmail"
-  output_path = "${path.root}/lambdas/notifications/sendEmail.zip"
+  source_dir  = "${path.root}/../lambdas/notifications/sendEmail"
+  output_path = "${path.root}/../lambdas/notifications/sendEmail.zip"
 }
 
 resource "aws_lambda_function" "send_email" {
@@ -694,6 +778,8 @@ resource "aws_lambda_function" "send_email" {
   handler          = "index.handler"
   role             = var.lambda_role_arn
   environment {
-    variables = { SES_FROM_EMAIL = var.ses_from_email }
+    variables = {
+      SES_FROM_EMAIL = var.ses_from_email
+    }
   }
 }

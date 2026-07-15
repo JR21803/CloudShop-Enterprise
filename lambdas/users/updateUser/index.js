@@ -20,7 +20,7 @@ exports.handler = async (event) => {
         const ExistingUser = await docClient.send(
 
             new GetCommand({
-                TableName: "Users",
+                TableName: process.env.USERS_TABLE,
                 Key: {
                     userId: userId
                 }
@@ -36,7 +36,7 @@ exports.handler = async (event) => {
 
         await docClient.send(
             new UpdateCommand({
-                TableName: "Users",
+                TableName: process.env.USERS_TABLE,
                 Key: {
                     userId: userId
                 },
@@ -59,7 +59,7 @@ exports.handler = async (event) => {
         const updatedUser = await docClient.send(
 
             new GetCommand({
-                TableName: "Users",
+                TableName: process.env.USERS_TABLE,
                 Key: {
                     userId: userId
                 }

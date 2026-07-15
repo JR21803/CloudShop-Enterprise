@@ -20,7 +20,7 @@ exports.handler = async (event) => {
 
     const result = await docClient.send(
         new GetCommand({
-            TableName: "Products",
+            TableName: process.env.PRODUCTS_TABLE,
             Key: { productId }
         })
     );

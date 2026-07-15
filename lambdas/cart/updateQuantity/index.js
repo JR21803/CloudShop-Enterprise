@@ -29,7 +29,7 @@ exports.handler = async (event) => {
 
         const { Item } = await docClient.send(
             new GetCommand({
-                TableName: "Cart",
+                TableName: process.env.CART_TABLE,
                 Key: { cartId }
             })
         );
@@ -57,7 +57,7 @@ exports.handler = async (event) => {
 
         await docClient.send(
             new PutCommand({
-                TableName: "Cart",
+                TableName: process.env.CART_TABLE,
                 Item: cart
             })
         );

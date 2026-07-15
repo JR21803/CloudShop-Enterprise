@@ -14,6 +14,12 @@ module "lambda" {
   source          = "./modules/lambda"
   lambda_role_arn = module.iam.lambda_role_arn
   ses_from_email  = var.ses_from_email
+  users_table     = module.dynamodb.users_table
+  products_table  = module.dynamodb.products_table
+  stores_table    = module.dynamodb.stores_table
+  cart_table      = module.dynamodb.cart_table
+  orders_table    = module.dynamodb.orders_table
+  audit_table     = module.dynamodb.audit_table
 }
 
 module "apigateway" {
@@ -69,27 +75,27 @@ module "apigateway" {
   sales_by_store_function_name = module.lambda.sales_by_store_function_name
 
   # products
-  create_product_invoke_arn     = module.lambda.create_product_invoke_arn
-  create_product_function_name  = module.lambda.create_product_function_name
-  get_products_invoke_arn       = module.lambda.get_products_invoke_arn
-  get_products_function_name    = module.lambda.get_products_function_name
-  get_product_by_id_invoke_arn  = module.lambda.get_product_by_id_invoke_arn
+  create_product_invoke_arn       = module.lambda.create_product_invoke_arn
+  create_product_function_name    = module.lambda.create_product_function_name
+  get_products_invoke_arn         = module.lambda.get_products_invoke_arn
+  get_products_function_name      = module.lambda.get_products_function_name
+  get_product_by_id_invoke_arn    = module.lambda.get_product_by_id_invoke_arn
   get_product_by_id_function_name = module.lambda.get_product_by_id_function_name
-  update_product_invoke_arn     = module.lambda.update_product_invoke_arn
-  update_product_function_name  = module.lambda.update_product_function_name
-  delete_product_invoke_arn     = module.lambda.delete_product_invoke_arn
-  delete_product_function_name  = module.lambda.delete_product_function_name
+  update_product_invoke_arn       = module.lambda.update_product_invoke_arn
+  update_product_function_name    = module.lambda.update_product_function_name
+  delete_product_invoke_arn       = module.lambda.delete_product_invoke_arn
+  delete_product_function_name    = module.lambda.delete_product_function_name
 
   # stores
-  create_store_invoke_arn       = module.lambda.create_store_invoke_arn
-  create_store_function_name    = module.lambda.create_store_function_name
-  get_stores_invoke_arn         = module.lambda.get_stores_invoke_arn
-  get_stores_function_name      = module.lambda.get_stores_function_name
-  get_store_by_id_invoke_arn    = module.lambda.get_store_by_id_invoke_arn
-  get_store_by_id_function_name = module.lambda.get_store_by_id_function_name
-  update_store_invoke_arn       = module.lambda.update_store_invoke_arn
-  update_store_function_name    = module.lambda.update_store_function_name
-  deactivate_store_invoke_arn   = module.lambda.deactivate_store_invoke_arn
+  create_store_invoke_arn        = module.lambda.create_store_invoke_arn
+  create_store_function_name     = module.lambda.create_store_function_name
+  get_stores_invoke_arn          = module.lambda.get_stores_invoke_arn
+  get_stores_function_name       = module.lambda.get_stores_function_name
+  get_store_by_id_invoke_arn     = module.lambda.get_store_by_id_invoke_arn
+  get_store_by_id_function_name  = module.lambda.get_store_by_id_function_name
+  update_store_invoke_arn        = module.lambda.update_store_invoke_arn
+  update_store_function_name     = module.lambda.update_store_function_name
+  deactivate_store_invoke_arn    = module.lambda.deactivate_store_invoke_arn
   deactivate_store_function_name = module.lambda.deactivate_store_function_name
 
   # cart

@@ -29,7 +29,7 @@ exports.handler = async (event) => {
 
     await docClient.send(
         new PutCommand({
-            TableName: "Products",
+            TableName: process.env.PRODUCTS_TABLE,
             Item: product
         })
     );
