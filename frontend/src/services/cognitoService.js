@@ -178,6 +178,27 @@ export const cognitoService = {
     const payloadBase64 = idToken.split(".")[1];
     const payloadDecoded = JSON.parse(atob(payloadBase64.replace(/-/g, "+").replace(/_/g, "/")));
 
+    const ROLE_BY_GROUP = {
+      CloudShopAdministradores: "Administrador",
+      CloudShopOperadores: "Operador",
+      CloudShopClientes: "Cliente",
+    };
+
+    let userRole = payloadDecoded["custom:role"] || payloadDecoded.role;
+    if (!userRole) {
+      const groups = payloadDecoded["cognito:groups"] || payloadDecoded.groups || [];
+      if (Array.isArray(groups)) {
+        for (const groupName of groups) {
+          if (ROLE_BY_GROUP[groupName]) {
+            userRole = ROLE_BY_GROUP[groupName];
+            break;
+          }
+        }
+      } else if (typeof groups === "string") {
+        userRole = ROLE_BY_GROUP[groups];
+      }
+    }
+
     const session = {
       tokens: {
         IdToken: authData.AuthenticationResult.IdToken,
@@ -187,7 +208,7 @@ export const cognitoService = {
       user: {
         email: payloadDecoded.email,
         name: payloadDecoded.name || payloadDecoded["custom:name"] || email.split("@")[0],
-        role: payloadDecoded["custom:role"] || "Cliente"
+        role: userRole || "Cliente"
       }
     };
 
