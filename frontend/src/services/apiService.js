@@ -203,7 +203,7 @@ async function apiRequest(path, method = "GET", body = null) {
 
 export const apiService = {
   isMockMode: () => forceMock,
-  
+
   toggleMockMode: () => {
     forceMock = !forceMock;
     localStorage.setItem("cloudshop_force_mock", String(forceMock));
@@ -463,7 +463,7 @@ export const apiService = {
       if (idx !== -1) {
         orders[idx].status = status;
         saveMockOrders(orders);
-        
+
         // Auditar acción mock
         const actionType = status === "Cancelado" ? "CANCELAR_PEDIDO" : "ACTUALIZAR_PEDIDO";
         addMockAuditRecord(actionType, { orderId: id, status });
@@ -505,7 +505,7 @@ export const apiService = {
     if (filters.usuario) params.append("usuario", filters.usuario);
     if (filters.fecha) params.append("fecha", filters.fecha);
     if (filters.resultado) params.append("resultado", filters.resultado);
-    
+
     const queryString = params.toString() ? `?${params.toString()}` : "";
     return apiRequest(`/audit${queryString}`)
       .then(res => {

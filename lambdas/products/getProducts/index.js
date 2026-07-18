@@ -3,8 +3,7 @@ const {
    DynamoDBDocumentClient,
    ScanCommand
 } = require("@aws-sdk/lib-dynamodb");
-const { getRole } = require("../../roleAuth");
-
+const { getRole, hasRole } = require('roleAuth');
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
 

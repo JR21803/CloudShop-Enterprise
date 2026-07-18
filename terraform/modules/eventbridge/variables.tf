@@ -17,3 +17,7 @@ variable "send_email_function_name" {
   type        = string
   description = "Nombre de la Lambda que envía notificaciones por SES"
 }
+
+variable "event_bus_name" {
+  type = string
+}

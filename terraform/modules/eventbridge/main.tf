@@ -3,7 +3,7 @@
 # ============================================================
 
 resource "aws_cloudwatch_event_bus" "cloudshop" {
-  name = "cloudshop-events"
+  name = var.event_bus_name
   tags = { Project = "CloudShop" }
 }
 
@@ -81,4 +81,81 @@ resource "aws_lambda_permission" "allow_eb_audit_cancelled" {
   function_name = var.process_audit_event_function_name
   principal     = "events.amazonaws.com"
   source_arn    = aws_cloudwatch_event_rule.order_cancelled.arn
+}
+
+
+resource "aws_cloudwatch_event_rule" "product_created" {
+  name           = "cloudshop-product-created"
+  description    = "Captura eventos de productos creados"
+  event_bus_name = aws_cloudwatch_event_bus.cloudshop.name
+
+  event_pattern = jsonencode({
+    source        = ["cloudshop.products"]
+    "detail-type" = ["product.created"]
+  })
+
+  tags = { Project = "CloudShop" }
+}
+
+resource "aws_cloudwatch_event_target" "audit_on_product_created" {
+  rule           = aws_cloudwatch_event_rule.product_created.name
+  event_bus_name = aws_cloudwatch_event_bus.cloudshop.name
+  target_id      = "processAuditEventProductCreated"
+  arn            = var.process_audit_event_arn
+}
+
+resource "aws_lambda_permission" "allow_eb_audit_product_created" {
+  statement_id  = "AllowEventBridgeAuditOnProductCreated"
+  action        = "lambda:InvokeFunction"
+  function_name = var.process_audit_event_function_name
+  principal     = "events.amazonaws.com"
+  source_arn    = aws_cloudwatch_event_rule.product_created.arn
+}
+
+resource "aws_cloudwatch_event_rule" "product_deleted" {
+  name           = "cloudshop-product-deleted"
+  event_bus_name = aws_cloudwatch_event_bus.cloudshop.name
+  event_pattern = jsonencode({
+    source        = ["cloudshop.products"]
+    "detail-type" = ["product.deleted"]
+  })
+}
+
+resource "aws_cloudwatch_event_target" "audit_on_product_deleted" {
+  rule           = aws_cloudwatch_event_rule.product_deleted.name
+  event_bus_name = aws_cloudwatch_event_bus.cloudshop.name
+  target_id      = "processAuditEventProductDeleted"
+  arn            = var.process_audit_event_arn
+}
+
+resource "aws_lambda_permission" "allow_eb_audit_product_deleted" {
+  statement_id  = "AllowEventBridgeAuditOnProductDeleted"
+  action        = "lambda:InvokeFunction"
+  function_name = var.process_audit_event_function_name
+  principal     = "events.amazonaws.com"
+  source_arn    = aws_cloudwatch_event_rule.product_deleted.arn
+}
+
+resource "aws_cloudwatch_event_rule" "user_created" {
+  name           = "cloudshop-user-created"
+  event_bus_name = aws_cloudwatch_event_bus.cloudshop.name
+  event_pattern = jsonencode({
+    source        = ["cloudshop.users"]
+    "detail-type" = ["user.created"]
+  })
+}
+
+resource "aws_cloudwatch_event_target" "audit_on_user_created" {
+  rule           = aws_cloudwatch_event_rule.user_created.name
+  event_bus_name = aws_cloudwatch_event_bus.cloudshop.name
+  target_id      = "processAuditEventUserCreated"
+  arn            = var.process_audit_event_arn
+}
+
+resource "aws_lambda_permission" "allow_eb_audit_user_created" {
+  statement_id  = "AllowEventBridgeAuditOnUserCreated"
+  action        = "lambda:InvokeFunction"
+  function_name = var.process_audit_event_function_name
+  principal     = "events.amazonaws.com"
+  source_arn    = aws_cloudwatch_event_rule.user_created.arn
 }

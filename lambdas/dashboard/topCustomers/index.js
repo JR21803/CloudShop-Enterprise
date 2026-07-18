@@ -9,9 +9,17 @@ const {
 
 
 
-const { getRole, hasRole } = require("../../roleAuth");
+const { getRole, hasRole } = require('roleAuth');
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
+
+
+const corsHeaders = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Headers": "Content-Type,Authorization",
+    "Access-Control-Allow-Methods": "OPTIONS,POST,GET,PUT,DELETE"
+};
+
 
 exports.handler = async (event) => {
 
@@ -22,14 +30,16 @@ exports.handler = async (event) => {
         if (!claims.sub) {
             return {
                 statusCode: 401,
+                headers: corsHeaders,
                 body: JSON.stringify({ message: "Autenticación requerida" })
             };
         }
 
-        if (!role || !hasRole(claims, ["Administrador"])) {
+        if (!role || !hasRole(claims, ["Administrador", "Operador"])) {
             return {
                 statusCode: 403,
-                body: JSON.stringify({ message: "Solo el Administrador puede consultar este reporte" })
+                headers: corsHeaders,
+                body: JSON.stringify({ message: "Solo el Administrador u Operador puede consultar este reporte" })
             };
         }
 
@@ -73,6 +83,7 @@ exports.handler = async (event) => {
 
         return {
             statusCode: 200,
+            headers: corsHeaders,
             body: JSON.stringify(response)
 
         };
@@ -85,6 +96,7 @@ exports.handler = async (event) => {
 
         return {
             statusCode: 500,
+            headers: corsHeaders,
             body: JSON.stringify({
 
                 message: "Error del servidor"

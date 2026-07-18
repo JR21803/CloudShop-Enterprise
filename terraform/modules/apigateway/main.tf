@@ -3,6 +3,75 @@ resource "aws_api_gateway_rest_api" "cloudshop_api" {
   description = "API REST de CloudShop Enterprise"
 }
 
+locals {
+  cors_allow_origin = "https://d1atv5wbhkay99.cloudfront.net"
+
+  deployment_trigger_ids = [
+    aws_api_gateway_rest_api.cloudshop_api.id,
+    aws_api_gateway_authorizer.cognito.id,
+    aws_api_gateway_resource.users.id,
+    aws_api_gateway_resource.user_id.id,
+    aws_api_gateway_resource.products.id,
+    aws_api_gateway_resource.product_id.id,
+    aws_api_gateway_resource.stores.id,
+    aws_api_gateway_resource.store_id.id,
+    aws_api_gateway_resource.cart.id,
+    aws_api_gateway_resource.orders.id,
+    aws_api_gateway_resource.order_id.id,
+    aws_api_gateway_resource.audit.id,
+    aws_api_gateway_method.products_options.id,
+    aws_api_gateway_method.product_id_options.id,
+    aws_api_gateway_method.stores_options.id,
+    aws_api_gateway_method.store_id_options.id,
+    aws_api_gateway_method.orders_options.id,
+    aws_api_gateway_method.order_id_options.id,
+    aws_api_gateway_method_response.products_options_200.id,
+    aws_api_gateway_method_response.product_id_options_200.id,
+    aws_api_gateway_method_response.stores_options_200.id,
+    aws_api_gateway_method_response.store_id_options_200.id,
+    aws_api_gateway_method_response.orders_options_200.id,
+    aws_api_gateway_method_response.order_id_options_200.id,
+    aws_api_gateway_integration_response.products_options_200.id,
+    aws_api_gateway_integration_response.product_id_options_200.id,
+    aws_api_gateway_integration_response.stores_options_200.id,
+    aws_api_gateway_integration_response.store_id_options_200.id,
+    aws_api_gateway_integration_response.orders_options_200.id,
+    aws_api_gateway_integration_response.order_id_options_200.id,
+
+
+    aws_api_gateway_resource.dashboard.id,
+    aws_api_gateway_resource.total_sales.id,
+    aws_api_gateway_resource.order_by_status.id,
+    aws_api_gateway_resource.out_of_stock.id,
+    aws_api_gateway_resource.top_products.id,
+    aws_api_gateway_resource.top_customers.id,
+    aws_api_gateway_resource.sales_by_store.id,
+
+    aws_api_gateway_method.total_sales_options.id,
+    aws_api_gateway_method.order_by_status_options.id,
+    aws_api_gateway_method.out_of_stock_options.id,
+    aws_api_gateway_method.top_products_options.id,
+    aws_api_gateway_method.top_customers_options.id,
+    aws_api_gateway_method.sales_by_store_options.id,
+
+    aws_api_gateway_method_response.total_sales_options_200.id,
+    aws_api_gateway_method_response.order_by_status_options_200.id,
+    aws_api_gateway_method_response.out_of_stock_options_200.id,
+    aws_api_gateway_method_response.top_products_options_200.id,
+    aws_api_gateway_method_response.top_customers_options_200.id,
+    aws_api_gateway_method_response.sales_by_store_options_200.id,
+
+    aws_api_gateway_integration_response.total_sales_options_200.id,
+    aws_api_gateway_integration_response.order_by_status_options_200.id,
+    aws_api_gateway_integration_response.out_of_stock_options_200.id,
+    aws_api_gateway_integration_response.top_products_options_200.id,
+    aws_api_gateway_integration_response.top_customers_options_200.id,
+    aws_api_gateway_integration_response.sales_by_store_options_200.id,    
+
+    
+  ]
+}
+
 resource "aws_api_gateway_resource" "users" {
   rest_api_id = aws_api_gateway_rest_api.cloudshop_api.id
   parent_id   = aws_api_gateway_rest_api.cloudshop_api.root_resource_id
@@ -22,7 +91,7 @@ resource "aws_api_gateway_method" "create_user" {
   http_method      = "POST"
   authorization    = "COGNITO_USER_POOLS"
   authorizer_id    = aws_api_gateway_authorizer.cognito.id
-  api_key_required = true
+  api_key_required = false
 }
 
 resource "aws_api_gateway_integration" "create_user" {
@@ -62,7 +131,7 @@ resource "aws_api_gateway_method" "get_users" {
   http_method      = "GET"
   authorization    = "COGNITO_USER_POOLS"
   authorizer_id    = aws_api_gateway_authorizer.cognito.id
-  api_key_required = true
+  api_key_required = false
 }
 
 resource "aws_api_gateway_integration" "get_users" {
@@ -94,7 +163,7 @@ resource "aws_api_gateway_method" "get_user" {
   http_method      = "GET"
   authorization    = "COGNITO_USER_POOLS"
   authorizer_id    = aws_api_gateway_authorizer.cognito.id
-  api_key_required = true
+  api_key_required = false
 }
 
 resource "aws_api_gateway_integration" "get_user_by_id" {
@@ -120,7 +189,7 @@ resource "aws_api_gateway_method" "update_user" {
   http_method      = "PUT"
   authorization    = "COGNITO_USER_POOLS"
   authorizer_id    = aws_api_gateway_authorizer.cognito.id
-  api_key_required = true
+  api_key_required = false
 }
 
 resource "aws_api_gateway_integration" "update_user" {
@@ -152,7 +221,7 @@ resource "aws_api_gateway_method" "delete_user" {
   http_method      = "DELETE"
   authorization    = "COGNITO_USER_POOLS"
   authorizer_id    = aws_api_gateway_authorizer.cognito.id
-  api_key_required = true
+  api_key_required = false
 }
 
 resource "aws_api_gateway_integration" "deactivate_user" {
@@ -199,20 +268,11 @@ resource "aws_api_gateway_deployment" "deployment" {
   rest_api_id = aws_api_gateway_rest_api.cloudshop_api.id
 
   triggers = {
-    redeployment = sha1(jsonencode([
-      aws_api_gateway_rest_api.cloudshop_api.id,
-      aws_api_gateway_authorizer.cognito.id,
-      aws_api_gateway_resource.users.id,
-      aws_api_gateway_resource.user_id.id,
-      aws_api_gateway_resource.products.id,
-      aws_api_gateway_resource.product_id.id,
-      aws_api_gateway_resource.stores.id,
-      aws_api_gateway_resource.store_id.id,
-      aws_api_gateway_resource.cart.id,
-      aws_api_gateway_resource.orders.id,
-      aws_api_gateway_resource.order_id.id,
-      aws_api_gateway_resource.audit.id,
-    ]))
+    redeployment = sha1(jsonencode(local.deployment_trigger_ids))
+  }
+
+  lifecycle {
+    create_before_destroy = true
   }
 
   depends_on = [
@@ -256,6 +316,67 @@ resource "aws_api_gateway_deployment" "deployment" {
 
     aws_api_gateway_integration.get_audit,
 
+    aws_api_gateway_integration.products_options,
+    aws_api_gateway_integration.product_id_options,
+    aws_api_gateway_integration.stores_options,
+    aws_api_gateway_integration.store_id_options,
+    aws_api_gateway_integration.orders_options,
+    aws_api_gateway_integration.order_id_options,
+
+    aws_api_gateway_method_response.products_options_200,
+    aws_api_gateway_method_response.product_id_options_200,
+    aws_api_gateway_method_response.stores_options_200,
+    aws_api_gateway_method_response.store_id_options_200,
+    aws_api_gateway_method_response.orders_options_200,
+    aws_api_gateway_method_response.order_id_options_200,
+
+    aws_api_gateway_integration_response.products_options_200,
+    aws_api_gateway_integration_response.product_id_options_200,
+    aws_api_gateway_integration_response.stores_options_200,
+    aws_api_gateway_integration_response.store_id_options_200,
+    aws_api_gateway_integration_response.orders_options_200,
+    aws_api_gateway_integration_response.order_id_options_200,
+
+
+    aws_api_gateway_integration.users_options,
+    aws_api_gateway_integration.user_id_options,
+    aws_api_gateway_integration.cart_options,
+    aws_api_gateway_integration.cart_items_options,
+    aws_api_gateway_integration.cart_product_id_options,
+    aws_api_gateway_integration.total_sales_options,
+    aws_api_gateway_integration.order_by_status_options,
+    aws_api_gateway_integration.out_of_stock_options,
+    aws_api_gateway_integration.top_products_options,
+    aws_api_gateway_integration.top_customers_options,
+    aws_api_gateway_integration.sales_by_store_options,
+    aws_api_gateway_integration.audit_options,
+
+    aws_api_gateway_method_response.users_options_200,
+    aws_api_gateway_method_response.user_id_options_200,
+    aws_api_gateway_method_response.cart_options_200,
+    aws_api_gateway_method_response.cart_items_options_200,
+    aws_api_gateway_method_response.cart_product_id_options_200,
+    aws_api_gateway_method_response.total_sales_options_200,
+    aws_api_gateway_method_response.order_by_status_options_200,
+    aws_api_gateway_method_response.out_of_stock_options_200,
+    aws_api_gateway_method_response.top_products_options_200,
+    aws_api_gateway_method_response.top_customers_options_200,
+    aws_api_gateway_method_response.sales_by_store_options_200,
+    aws_api_gateway_method_response.audit_options_200,
+
+    aws_api_gateway_integration_response.users_options_200,
+    aws_api_gateway_integration_response.user_id_options_200,
+    aws_api_gateway_integration_response.cart_options_200,
+    aws_api_gateway_integration_response.cart_items_options_200,
+    aws_api_gateway_integration_response.cart_product_id_options_200,
+    aws_api_gateway_integration_response.total_sales_options_200,
+    aws_api_gateway_integration_response.order_by_status_options_200,
+    aws_api_gateway_integration_response.out_of_stock_options_200,
+    aws_api_gateway_integration_response.top_products_options_200,
+    aws_api_gateway_integration_response.top_customers_options_200,
+    aws_api_gateway_integration_response.sales_by_store_options_200,
+    aws_api_gateway_integration_response.audit_options_200,
+
   ]
 
 }
@@ -281,10 +402,104 @@ resource "aws_api_gateway_resource" "products" {
   path_part   = "products"
 }
 
+resource "aws_api_gateway_method" "products_options" {
+  rest_api_id   = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id   = aws_api_gateway_resource.products.id
+  http_method   = "OPTIONS"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "products_options" {
+  rest_api_id             = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id             = aws_api_gateway_resource.products.id
+  http_method             = aws_api_gateway_method.products_options.http_method
+  integration_http_method = "OPTIONS"
+  type                    = "MOCK"
+  request_templates = {
+    "application/json" = "{\"statusCode\": 200}"
+  }
+}
+
+resource "aws_api_gateway_method_response" "products_options_200" {
+  rest_api_id = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id = aws_api_gateway_resource.products.id
+  http_method = aws_api_gateway_method.products_options.http_method
+  status_code = "200"
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Origin"  = true
+  }
+}
+
+resource "aws_api_gateway_integration_response" "products_options_200" {
+  rest_api_id = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id = aws_api_gateway_resource.products.id
+  http_method = aws_api_gateway_method.products_options.http_method
+  status_code = aws_api_gateway_method_response.products_options_200.status_code
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+    "method.response.header.Access-Control-Allow-Methods" = "'GET,POST,PUT,DELETE,OPTIONS'"
+    "method.response.header.Access-Control-Allow-Origin"  = "'${local.cors_allow_origin}'"
+  }
+
+  depends_on = [
+    aws_api_gateway_integration.products_options,
+    aws_api_gateway_method_response.products_options_200,
+  ]
+}
+
 resource "aws_api_gateway_resource" "product_id" {
   rest_api_id = aws_api_gateway_rest_api.cloudshop_api.id
   parent_id   = aws_api_gateway_resource.products.id
   path_part   = "{id}"
+}
+
+resource "aws_api_gateway_method" "product_id_options" {
+  rest_api_id   = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id   = aws_api_gateway_resource.product_id.id
+  http_method   = "OPTIONS"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "product_id_options" {
+  rest_api_id             = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id             = aws_api_gateway_resource.product_id.id
+  http_method             = aws_api_gateway_method.product_id_options.http_method
+  integration_http_method = "OPTIONS"
+  type                    = "MOCK"
+  request_templates = {
+    "application/json" = "{\"statusCode\": 200}"
+  }
+}
+
+resource "aws_api_gateway_method_response" "product_id_options_200" {
+  rest_api_id = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id = aws_api_gateway_resource.product_id.id
+  http_method = aws_api_gateway_method.product_id_options.http_method
+  status_code = "200"
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Origin"  = true
+  }
+}
+
+resource "aws_api_gateway_integration_response" "product_id_options_200" {
+  rest_api_id = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id = aws_api_gateway_resource.product_id.id
+  http_method = aws_api_gateway_method.product_id_options.http_method
+  status_code = aws_api_gateway_method_response.product_id_options_200.status_code
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+    "method.response.header.Access-Control-Allow-Methods" = "'GET,POST,PUT,DELETE,OPTIONS'"
+    "method.response.header.Access-Control-Allow-Origin"  = "'${local.cors_allow_origin}'"
+  }
+
+  depends_on = [
+    aws_api_gateway_integration.product_id_options,
+    aws_api_gateway_method_response.product_id_options_200,
+  ]
 }
 
 # GET /products
@@ -294,7 +509,7 @@ resource "aws_api_gateway_method" "get_products" {
   http_method      = "GET"
   authorization    = "COGNITO_USER_POOLS"
   authorizer_id    = aws_api_gateway_authorizer.cognito.id
-  api_key_required = true
+  api_key_required = false
 }
 
 resource "aws_api_gateway_integration" "get_products" {
@@ -321,7 +536,7 @@ resource "aws_api_gateway_method" "create_product" {
   http_method      = "POST"
   authorization    = "COGNITO_USER_POOLS"
   authorizer_id    = aws_api_gateway_authorizer.cognito.id
-  api_key_required = true
+  api_key_required = false
 }
 
 resource "aws_api_gateway_integration" "create_product" {
@@ -339,6 +554,8 @@ resource "aws_lambda_permission" "create_product" {
   function_name = var.create_product_function_name
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_api_gateway_rest_api.cloudshop_api.execution_arn}/*/*"
+
+  
 }
 
 # GET /products/{id}
@@ -348,7 +565,7 @@ resource "aws_api_gateway_method" "get_product_by_id" {
   http_method      = "GET"
   authorization    = "COGNITO_USER_POOLS"
   authorizer_id    = aws_api_gateway_authorizer.cognito.id
-  api_key_required = true
+  api_key_required = false
 }
 
 resource "aws_api_gateway_integration" "get_product_by_id" {
@@ -375,7 +592,7 @@ resource "aws_api_gateway_method" "update_product" {
   http_method      = "PUT"
   authorization    = "COGNITO_USER_POOLS"
   authorizer_id    = aws_api_gateway_authorizer.cognito.id
-  api_key_required = true
+  api_key_required = false
 }
 
 resource "aws_api_gateway_integration" "update_product" {
@@ -402,7 +619,7 @@ resource "aws_api_gateway_method" "delete_product" {
   http_method      = "DELETE"
   authorization    = "COGNITO_USER_POOLS"
   authorizer_id    = aws_api_gateway_authorizer.cognito.id
-  api_key_required = true
+  api_key_required = false
 }
 
 resource "aws_api_gateway_integration" "delete_product" {
@@ -433,10 +650,104 @@ resource "aws_api_gateway_resource" "stores" {
   path_part   = "stores"
 }
 
+resource "aws_api_gateway_method" "stores_options" {
+  rest_api_id   = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id   = aws_api_gateway_resource.stores.id
+  http_method   = "OPTIONS"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "stores_options" {
+  rest_api_id             = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id             = aws_api_gateway_resource.stores.id
+  http_method             = aws_api_gateway_method.stores_options.http_method
+  integration_http_method = "OPTIONS"
+  type                    = "MOCK"
+  request_templates = {
+    "application/json" = "{\"statusCode\": 200}"
+  }
+}
+
+resource "aws_api_gateway_method_response" "stores_options_200" {
+  rest_api_id = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id = aws_api_gateway_resource.stores.id
+  http_method = aws_api_gateway_method.stores_options.http_method
+  status_code = "200"
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Origin"  = true
+  }
+}
+
+resource "aws_api_gateway_integration_response" "stores_options_200" {
+  rest_api_id = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id = aws_api_gateway_resource.stores.id
+  http_method = aws_api_gateway_method.stores_options.http_method
+  status_code = aws_api_gateway_method_response.stores_options_200.status_code
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+    "method.response.header.Access-Control-Allow-Methods" = "'GET,POST,PUT,DELETE,OPTIONS'"
+    "method.response.header.Access-Control-Allow-Origin"  = "'${local.cors_allow_origin}'"
+  }
+
+  depends_on = [
+    aws_api_gateway_integration.stores_options,
+    aws_api_gateway_method_response.stores_options_200,
+  ]
+}
+
 resource "aws_api_gateway_resource" "store_id" {
   rest_api_id = aws_api_gateway_rest_api.cloudshop_api.id
   parent_id   = aws_api_gateway_resource.stores.id
   path_part   = "{id}"
+}
+
+resource "aws_api_gateway_method" "store_id_options" {
+  rest_api_id   = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id   = aws_api_gateway_resource.store_id.id
+  http_method   = "OPTIONS"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "store_id_options" {
+  rest_api_id             = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id             = aws_api_gateway_resource.store_id.id
+  http_method             = aws_api_gateway_method.store_id_options.http_method
+  integration_http_method = "OPTIONS"
+  type                    = "MOCK"
+  request_templates = {
+    "application/json" = "{\"statusCode\": 200}"
+  }
+}
+
+resource "aws_api_gateway_method_response" "store_id_options_200" {
+  rest_api_id = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id = aws_api_gateway_resource.store_id.id
+  http_method = aws_api_gateway_method.store_id_options.http_method
+  status_code = "200"
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Origin"  = true
+  }
+}
+
+resource "aws_api_gateway_integration_response" "store_id_options_200" {
+  rest_api_id = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id = aws_api_gateway_resource.store_id.id
+  http_method = aws_api_gateway_method.store_id_options.http_method
+  status_code = aws_api_gateway_method_response.store_id_options_200.status_code
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+    "method.response.header.Access-Control-Allow-Methods" = "'GET,POST,PUT,DELETE,OPTIONS'"
+    "method.response.header.Access-Control-Allow-Origin"  = "'${local.cors_allow_origin}'"
+  }
+
+  depends_on = [
+    aws_api_gateway_integration.store_id_options,
+    aws_api_gateway_method_response.store_id_options_200,
+  ]
 }
 
 # GET /stores
@@ -446,7 +757,7 @@ resource "aws_api_gateway_method" "get_stores" {
   http_method      = "GET"
   authorization    = "COGNITO_USER_POOLS"
   authorizer_id    = aws_api_gateway_authorizer.cognito.id
-  api_key_required = true
+  api_key_required = false
 }
 
 resource "aws_api_gateway_integration" "get_stores" {
@@ -473,7 +784,7 @@ resource "aws_api_gateway_method" "create_store" {
   http_method      = "POST"
   authorization    = "COGNITO_USER_POOLS"
   authorizer_id    = aws_api_gateway_authorizer.cognito.id
-  api_key_required = true
+  api_key_required = false
 }
 
 resource "aws_api_gateway_integration" "create_store" {
@@ -500,7 +811,7 @@ resource "aws_api_gateway_method" "get_store_by_id" {
   http_method      = "GET"
   authorization    = "COGNITO_USER_POOLS"
   authorizer_id    = aws_api_gateway_authorizer.cognito.id
-  api_key_required = true
+  api_key_required = false
 }
 
 resource "aws_api_gateway_integration" "get_store_by_id" {
@@ -527,7 +838,7 @@ resource "aws_api_gateway_method" "update_store" {
   http_method      = "PUT"
   authorization    = "COGNITO_USER_POOLS"
   authorizer_id    = aws_api_gateway_authorizer.cognito.id
-  api_key_required = true
+  api_key_required = false
 }
 
 resource "aws_api_gateway_integration" "update_store" {
@@ -554,7 +865,7 @@ resource "aws_api_gateway_method" "delete_store" {
   http_method      = "DELETE"
   authorization    = "COGNITO_USER_POOLS"
   authorizer_id    = aws_api_gateway_authorizer.cognito.id
-  api_key_required = true
+  api_key_required = false
 }
 
 resource "aws_api_gateway_integration" "delete_store" {
@@ -595,7 +906,7 @@ resource "aws_api_gateway_method" "total_sales" {
   http_method      = "GET"
   authorization    = "COGNITO_USER_POOLS"
   authorizer_id    = aws_api_gateway_authorizer.cognito.id
-  api_key_required = true
+  api_key_required = false
 }
 
 resource "aws_api_gateway_integration" "total_sales" {
@@ -636,7 +947,7 @@ resource "aws_api_gateway_method" "order_by_status" {
 
   authorizer_id = aws_api_gateway_authorizer.cognito.id
 
-  api_key_required = true
+  api_key_required = false
 
 }
 
@@ -668,7 +979,7 @@ resource "aws_api_gateway_method" "out_of_stock" {
   http_method      = "GET"
   authorization    = "COGNITO_USER_POOLS"
   authorizer_id    = aws_api_gateway_authorizer.cognito.id
-  api_key_required = true
+  api_key_required = false
 }
 
 resource "aws_api_gateway_integration" "out_of_stock" {
@@ -692,7 +1003,7 @@ resource "aws_api_gateway_method" "top_products" {
   http_method      = "GET"
   authorization    = "COGNITO_USER_POOLS"
   authorizer_id    = aws_api_gateway_authorizer.cognito.id
-  api_key_required = true
+  api_key_required = false
 }
 
 resource "aws_api_gateway_integration" "top_products" {
@@ -716,7 +1027,7 @@ resource "aws_api_gateway_method" "top_customers" {
   http_method      = "GET"
   authorization    = "COGNITO_USER_POOLS"
   authorizer_id    = aws_api_gateway_authorizer.cognito.id
-  api_key_required = true
+  api_key_required = false
 }
 
 resource "aws_api_gateway_integration" "top_customers" {
@@ -740,7 +1051,7 @@ resource "aws_api_gateway_method" "sales_by_store" {
   http_method      = "GET"
   authorization    = "COGNITO_USER_POOLS"
   authorizer_id    = aws_api_gateway_authorizer.cognito.id
-  api_key_required = true
+  api_key_required = false
 }
 
 resource "aws_api_gateway_integration" "sales_by_store" {
@@ -864,7 +1175,7 @@ resource "aws_api_gateway_method" "get_cart" {
   http_method      = "GET"
   authorization    = "COGNITO_USER_POOLS"
   authorizer_id    = aws_api_gateway_authorizer.cognito.id
-  api_key_required = true
+  api_key_required = false
 }
 
 resource "aws_api_gateway_integration" "get_cart" {
@@ -891,7 +1202,7 @@ resource "aws_api_gateway_method" "clear_cart" {
   http_method      = "DELETE"
   authorization    = "COGNITO_USER_POOLS"
   authorizer_id    = aws_api_gateway_authorizer.cognito.id
-  api_key_required = true
+  api_key_required = false
 }
 
 resource "aws_api_gateway_integration" "clear_cart" {
@@ -918,7 +1229,7 @@ resource "aws_api_gateway_method" "add_product" {
   http_method      = "POST"
   authorization    = "COGNITO_USER_POOLS"
   authorizer_id    = aws_api_gateway_authorizer.cognito.id
-  api_key_required = true
+  api_key_required = false
 }
 
 resource "aws_api_gateway_integration" "add_product" {
@@ -945,7 +1256,7 @@ resource "aws_api_gateway_method" "update_quantity" {
   http_method      = "PUT"
   authorization    = "COGNITO_USER_POOLS"
   authorizer_id    = aws_api_gateway_authorizer.cognito.id
-  api_key_required = true
+  api_key_required = false
 }
 
 resource "aws_api_gateway_integration" "update_quantity" {
@@ -972,7 +1283,7 @@ resource "aws_api_gateway_method" "remove_product" {
   http_method      = "DELETE"
   authorization    = "COGNITO_USER_POOLS"
   authorizer_id    = aws_api_gateway_authorizer.cognito.id
-  api_key_required = true
+  api_key_required = false
 }
 
 resource "aws_api_gateway_integration" "remove_product" {
@@ -1002,10 +1313,104 @@ resource "aws_api_gateway_resource" "orders" {
   path_part   = "orders"
 }
 
+resource "aws_api_gateway_method" "orders_options" {
+  rest_api_id   = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id   = aws_api_gateway_resource.orders.id
+  http_method   = "OPTIONS"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "orders_options" {
+  rest_api_id             = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id             = aws_api_gateway_resource.orders.id
+  http_method             = aws_api_gateway_method.orders_options.http_method
+  integration_http_method = "OPTIONS"
+  type                    = "MOCK"
+  request_templates = {
+    "application/json" = "{\"statusCode\": 200}"
+  }
+}
+
+resource "aws_api_gateway_method_response" "orders_options_200" {
+  rest_api_id = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id = aws_api_gateway_resource.orders.id
+  http_method = aws_api_gateway_method.orders_options.http_method
+  status_code = "200"
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Origin"  = true
+  }
+}
+
+resource "aws_api_gateway_integration_response" "orders_options_200" {
+  rest_api_id = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id = aws_api_gateway_resource.orders.id
+  http_method = aws_api_gateway_method.orders_options.http_method
+  status_code = aws_api_gateway_method_response.orders_options_200.status_code
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+    "method.response.header.Access-Control-Allow-Methods" = "'GET,POST,PUT,DELETE,OPTIONS'"
+    "method.response.header.Access-Control-Allow-Origin"  = "'${local.cors_allow_origin}'"
+  }
+
+  depends_on = [
+    aws_api_gateway_integration.orders_options,
+    aws_api_gateway_method_response.orders_options_200,
+  ]
+}
+
 resource "aws_api_gateway_resource" "order_id" {
   rest_api_id = aws_api_gateway_rest_api.cloudshop_api.id
   parent_id   = aws_api_gateway_resource.orders.id
   path_part   = "{id}"
+}
+
+resource "aws_api_gateway_method" "order_id_options" {
+  rest_api_id   = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id   = aws_api_gateway_resource.order_id.id
+  http_method   = "OPTIONS"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "order_id_options" {
+  rest_api_id             = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id             = aws_api_gateway_resource.order_id.id
+  http_method             = aws_api_gateway_method.order_id_options.http_method
+  integration_http_method = "OPTIONS"
+  type                    = "MOCK"
+  request_templates = {
+    "application/json" = "{\"statusCode\": 200}"
+  }
+}
+
+resource "aws_api_gateway_method_response" "order_id_options_200" {
+  rest_api_id = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id = aws_api_gateway_resource.order_id.id
+  http_method = aws_api_gateway_method.order_id_options.http_method
+  status_code = "200"
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Origin"  = true
+  }
+}
+
+resource "aws_api_gateway_integration_response" "order_id_options_200" {
+  rest_api_id = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id = aws_api_gateway_resource.order_id.id
+  http_method = aws_api_gateway_method.order_id_options.http_method
+  status_code = aws_api_gateway_method_response.order_id_options_200.status_code
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+    "method.response.header.Access-Control-Allow-Methods" = "'GET,POST,PUT,DELETE,OPTIONS'"
+    "method.response.header.Access-Control-Allow-Origin"  = "'${local.cors_allow_origin}'"
+  }
+
+  depends_on = [
+    aws_api_gateway_integration.order_id_options,
+    aws_api_gateway_method_response.order_id_options_200,
+  ]
 }
 
 # POST /orders — createOrder
@@ -1015,7 +1420,7 @@ resource "aws_api_gateway_method" "create_order" {
   http_method      = "POST"
   authorization    = "COGNITO_USER_POOLS"
   authorizer_id    = aws_api_gateway_authorizer.cognito.id
-  api_key_required = true
+  api_key_required = false
 }
 
 resource "aws_api_gateway_integration" "create_order" {
@@ -1042,7 +1447,7 @@ resource "aws_api_gateway_method" "get_orders" {
   http_method      = "GET"
   authorization    = "COGNITO_USER_POOLS"
   authorizer_id    = aws_api_gateway_authorizer.cognito.id
-  api_key_required = true
+  api_key_required = false
 }
 
 resource "aws_api_gateway_integration" "get_orders" {
@@ -1069,7 +1474,7 @@ resource "aws_api_gateway_method" "get_order_by_id" {
   http_method      = "GET"
   authorization    = "COGNITO_USER_POOLS"
   authorizer_id    = aws_api_gateway_authorizer.cognito.id
-  api_key_required = true
+  api_key_required = false
 }
 
 resource "aws_api_gateway_integration" "get_order_by_id" {
@@ -1096,7 +1501,7 @@ resource "aws_api_gateway_method" "update_order_status" {
   http_method      = "PUT"
   authorization    = "COGNITO_USER_POOLS"
   authorizer_id    = aws_api_gateway_authorizer.cognito.id
-  api_key_required = true
+  api_key_required = false
 }
 
 resource "aws_api_gateway_integration" "update_order_status" {
@@ -1123,7 +1528,7 @@ resource "aws_api_gateway_method" "cancel_order" {
   http_method      = "DELETE"
   authorization    = "COGNITO_USER_POOLS"
   authorizer_id    = aws_api_gateway_authorizer.cognito.id
-  api_key_required = true
+  api_key_required = false
 }
 
 resource "aws_api_gateway_integration" "cancel_order" {
@@ -1160,7 +1565,7 @@ resource "aws_api_gateway_method" "get_audit" {
   http_method      = "GET"
   authorization    = "COGNITO_USER_POOLS"
   authorizer_id    = aws_api_gateway_authorizer.cognito.id
-  api_key_required = true
+  api_key_required = false
 }
 
 resource "aws_api_gateway_integration" "get_audit" {
@@ -1179,3 +1584,634 @@ resource "aws_lambda_permission" "get_audit" {
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_api_gateway_rest_api.cloudshop_api.execution_arn}/*/*"
 }
+
+
+
+resource "aws_api_gateway_gateway_response" "unauthorized" {
+  rest_api_id   = aws_api_gateway_rest_api.cloudshop_api.id
+  response_type = "UNAUTHORIZED"
+  status_code   = "401"
+
+  response_parameters = {
+    "gatewayresponse.header.Access-Control-Allow-Origin"  = "'*'"
+    "gatewayresponse.header.Access-Control-Allow-Headers" = "'Content-Type,Authorization'"
+  }
+}
+
+resource "aws_api_gateway_gateway_response" "access_denied" {
+  rest_api_id   = aws_api_gateway_rest_api.cloudshop_api.id
+  response_type = "ACCESS_DENIED"
+  status_code   = "403"
+
+  response_parameters = {
+    "gatewayresponse.header.Access-Control-Allow-Origin"  = "'*'"
+    "gatewayresponse.header.Access-Control-Allow-Headers" = "'Content-Type,Authorization'"
+  }
+}
+
+resource "aws_api_gateway_gateway_response" "default_4xx" {
+  rest_api_id   = aws_api_gateway_rest_api.cloudshop_api.id
+  response_type = "DEFAULT_4XX"
+
+  response_parameters = {
+    "gatewayresponse.header.Access-Control-Allow-Origin"  = "'*'"
+    "gatewayresponse.header.Access-Control-Allow-Headers" = "'Content-Type,Authorization'"
+  }
+}
+
+
+
+
+# ==========================================
+# OPTIONS - USERS
+# ==========================================
+
+resource "aws_api_gateway_method" "users_options" {
+  rest_api_id   = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id   = aws_api_gateway_resource.users.id
+  http_method   = "OPTIONS"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "users_options" {
+  rest_api_id             = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id             = aws_api_gateway_resource.users.id
+  http_method             = aws_api_gateway_method.users_options.http_method
+  integration_http_method = "OPTIONS"
+  type                    = "MOCK"
+  request_templates = {
+    "application/json" = "{\"statusCode\": 200}"
+  }
+}
+
+resource "aws_api_gateway_method_response" "users_options_200" {
+  rest_api_id = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id = aws_api_gateway_resource.users.id
+  http_method = aws_api_gateway_method.users_options.http_method
+  status_code = "200"
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Origin"  = true
+  }
+}
+
+resource "aws_api_gateway_integration_response" "users_options_200" {
+  rest_api_id = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id = aws_api_gateway_resource.users.id
+  http_method = aws_api_gateway_method.users_options.http_method
+  status_code = aws_api_gateway_method_response.users_options_200.status_code
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+    "method.response.header.Access-Control-Allow-Methods" = "'GET,POST,PUT,DELETE,OPTIONS'"
+    "method.response.header.Access-Control-Allow-Origin"  = "'${local.cors_allow_origin}'"
+  }
+
+  depends_on = [
+    aws_api_gateway_integration.users_options,
+    aws_api_gateway_method_response.users_options_200,
+  ]
+}
+
+# ==========================================
+# OPTIONS - USER_ID
+# ==========================================
+
+resource "aws_api_gateway_method" "user_id_options" {
+  rest_api_id   = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id   = aws_api_gateway_resource.user_id.id
+  http_method   = "OPTIONS"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "user_id_options" {
+  rest_api_id             = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id             = aws_api_gateway_resource.user_id.id
+  http_method             = aws_api_gateway_method.user_id_options.http_method
+  integration_http_method = "OPTIONS"
+  type                    = "MOCK"
+  request_templates = {
+    "application/json" = "{\"statusCode\": 200}"
+  }
+}
+
+resource "aws_api_gateway_method_response" "user_id_options_200" {
+  rest_api_id = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id = aws_api_gateway_resource.user_id.id
+  http_method = aws_api_gateway_method.user_id_options.http_method
+  status_code = "200"
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Origin"  = true
+  }
+}
+
+resource "aws_api_gateway_integration_response" "user_id_options_200" {
+  rest_api_id = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id = aws_api_gateway_resource.user_id.id
+  http_method = aws_api_gateway_method.user_id_options.http_method
+  status_code = aws_api_gateway_method_response.user_id_options_200.status_code
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+    "method.response.header.Access-Control-Allow-Methods" = "'GET,POST,PUT,DELETE,OPTIONS'"
+    "method.response.header.Access-Control-Allow-Origin"  = "'${local.cors_allow_origin}'"
+  }
+
+  depends_on = [
+    aws_api_gateway_integration.user_id_options,
+    aws_api_gateway_method_response.user_id_options_200,
+  ]
+}
+
+# ==========================================
+# OPTIONS - CART
+# ==========================================
+
+resource "aws_api_gateway_method" "cart_options" {
+  rest_api_id   = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id   = aws_api_gateway_resource.cart.id
+  http_method   = "OPTIONS"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "cart_options" {
+  rest_api_id             = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id             = aws_api_gateway_resource.cart.id
+  http_method             = aws_api_gateway_method.cart_options.http_method
+  integration_http_method = "OPTIONS"
+  type                    = "MOCK"
+  request_templates = {
+    "application/json" = "{\"statusCode\": 200}"
+  }
+}
+
+resource "aws_api_gateway_method_response" "cart_options_200" {
+  rest_api_id = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id = aws_api_gateway_resource.cart.id
+  http_method = aws_api_gateway_method.cart_options.http_method
+  status_code = "200"
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Origin"  = true
+  }
+}
+
+resource "aws_api_gateway_integration_response" "cart_options_200" {
+  rest_api_id = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id = aws_api_gateway_resource.cart.id
+  http_method = aws_api_gateway_method.cart_options.http_method
+  status_code = aws_api_gateway_method_response.cart_options_200.status_code
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+    "method.response.header.Access-Control-Allow-Methods" = "'GET,POST,PUT,DELETE,OPTIONS'"
+    "method.response.header.Access-Control-Allow-Origin"  = "'${local.cors_allow_origin}'"
+  }
+
+  depends_on = [
+    aws_api_gateway_integration.cart_options,
+    aws_api_gateway_method_response.cart_options_200,
+  ]
+}
+
+# ==========================================
+# OPTIONS - CART_ITEMS
+# ==========================================
+
+resource "aws_api_gateway_method" "cart_items_options" {
+  rest_api_id   = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id   = aws_api_gateway_resource.cart_items.id
+  http_method   = "OPTIONS"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "cart_items_options" {
+  rest_api_id             = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id             = aws_api_gateway_resource.cart_items.id
+  http_method             = aws_api_gateway_method.cart_items_options.http_method
+  integration_http_method = "OPTIONS"
+  type                    = "MOCK"
+  request_templates = {
+    "application/json" = "{\"statusCode\": 200}"
+  }
+}
+
+resource "aws_api_gateway_method_response" "cart_items_options_200" {
+  rest_api_id = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id = aws_api_gateway_resource.cart_items.id
+  http_method = aws_api_gateway_method.cart_items_options.http_method
+  status_code = "200"
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Origin"  = true
+  }
+}
+
+resource "aws_api_gateway_integration_response" "cart_items_options_200" {
+  rest_api_id = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id = aws_api_gateway_resource.cart_items.id
+  http_method = aws_api_gateway_method.cart_items_options.http_method
+  status_code = aws_api_gateway_method_response.cart_items_options_200.status_code
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+    "method.response.header.Access-Control-Allow-Methods" = "'GET,POST,PUT,DELETE,OPTIONS'"
+    "method.response.header.Access-Control-Allow-Origin"  = "'${local.cors_allow_origin}'"
+  }
+
+  depends_on = [
+    aws_api_gateway_integration.cart_items_options,
+    aws_api_gateway_method_response.cart_items_options_200,
+  ]
+}
+
+# ==========================================
+# OPTIONS - CART_PRODUCT_ID
+# ==========================================
+
+resource "aws_api_gateway_method" "cart_product_id_options" {
+  rest_api_id   = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id   = aws_api_gateway_resource.cart_product_id.id
+  http_method   = "OPTIONS"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "cart_product_id_options" {
+  rest_api_id             = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id             = aws_api_gateway_resource.cart_product_id.id
+  http_method             = aws_api_gateway_method.cart_product_id_options.http_method
+  integration_http_method = "OPTIONS"
+  type                    = "MOCK"
+  request_templates = {
+    "application/json" = "{\"statusCode\": 200}"
+  }
+}
+
+resource "aws_api_gateway_method_response" "cart_product_id_options_200" {
+  rest_api_id = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id = aws_api_gateway_resource.cart_product_id.id
+  http_method = aws_api_gateway_method.cart_product_id_options.http_method
+  status_code = "200"
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Origin"  = true
+  }
+}
+
+resource "aws_api_gateway_integration_response" "cart_product_id_options_200" {
+  rest_api_id = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id = aws_api_gateway_resource.cart_product_id.id
+  http_method = aws_api_gateway_method.cart_product_id_options.http_method
+  status_code = aws_api_gateway_method_response.cart_product_id_options_200.status_code
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+    "method.response.header.Access-Control-Allow-Methods" = "'GET,POST,PUT,DELETE,OPTIONS'"
+    "method.response.header.Access-Control-Allow-Origin"  = "'${local.cors_allow_origin}'"
+  }
+
+  depends_on = [
+    aws_api_gateway_integration.cart_product_id_options,
+    aws_api_gateway_method_response.cart_product_id_options_200,
+  ]
+}
+
+# ==========================================
+# OPTIONS - DASHBOARD ENDPOINTS
+# ==========================================
+
+resource "aws_api_gateway_method" "total_sales_options" {
+  rest_api_id   = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id   = aws_api_gateway_resource.total_sales.id
+  http_method   = "OPTIONS"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "total_sales_options" {
+  rest_api_id             = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id             = aws_api_gateway_resource.total_sales.id
+  http_method             = aws_api_gateway_method.total_sales_options.http_method
+  integration_http_method = "OPTIONS"
+  type                    = "MOCK"
+  request_templates = {
+    "application/json" = "{\"statusCode\": 200}"
+  }
+}
+
+resource "aws_api_gateway_method_response" "total_sales_options_200" {
+  rest_api_id = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id = aws_api_gateway_resource.total_sales.id
+  http_method = aws_api_gateway_method.total_sales_options.http_method
+  status_code = "200"
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Origin"  = true
+  }
+}
+
+resource "aws_api_gateway_integration_response" "total_sales_options_200" {
+  rest_api_id = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id = aws_api_gateway_resource.total_sales.id
+  http_method = aws_api_gateway_method.total_sales_options.http_method
+  status_code = aws_api_gateway_method_response.total_sales_options_200.status_code
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+    "method.response.header.Access-Control-Allow-Methods" = "'GET,POST,PUT,DELETE,OPTIONS'"
+    "method.response.header.Access-Control-Allow-Origin"  = "'${local.cors_allow_origin}'"
+  }
+
+  depends_on = [
+    aws_api_gateway_integration.total_sales_options,
+    aws_api_gateway_method_response.total_sales_options_200,
+  ]
+}
+
+resource "aws_api_gateway_method" "order_by_status_options" {
+  rest_api_id   = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id   = aws_api_gateway_resource.order_by_status.id
+  http_method   = "OPTIONS"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "order_by_status_options" {
+  rest_api_id             = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id             = aws_api_gateway_resource.order_by_status.id
+  http_method             = aws_api_gateway_method.order_by_status_options.http_method
+  integration_http_method = "OPTIONS"
+  type                    = "MOCK"
+  request_templates = {
+    "application/json" = "{\"statusCode\": 200}"
+  }
+}
+
+resource "aws_api_gateway_method_response" "order_by_status_options_200" {
+  rest_api_id = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id = aws_api_gateway_resource.order_by_status.id
+  http_method = aws_api_gateway_method.order_by_status_options.http_method
+  status_code = "200"
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Origin"  = true
+  }
+}
+
+resource "aws_api_gateway_integration_response" "order_by_status_options_200" {
+  rest_api_id = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id = aws_api_gateway_resource.order_by_status.id
+  http_method = aws_api_gateway_method.order_by_status_options.http_method
+  status_code = aws_api_gateway_method_response.order_by_status_options_200.status_code
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+    "method.response.header.Access-Control-Allow-Methods" = "'GET,POST,PUT,DELETE,OPTIONS'"
+    "method.response.header.Access-Control-Allow-Origin"  = "'${local.cors_allow_origin}'"
+  }
+
+  depends_on = [
+    aws_api_gateway_integration.order_by_status_options,
+    aws_api_gateway_method_response.order_by_status_options_200,
+  ]
+}
+
+resource "aws_api_gateway_method" "out_of_stock_options" {
+  rest_api_id   = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id   = aws_api_gateway_resource.out_of_stock.id
+  http_method   = "OPTIONS"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "out_of_stock_options" {
+  rest_api_id             = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id             = aws_api_gateway_resource.out_of_stock.id
+  http_method             = aws_api_gateway_method.out_of_stock_options.http_method
+  integration_http_method = "OPTIONS"
+  type                    = "MOCK"
+  request_templates = {
+    "application/json" = "{\"statusCode\": 200}"
+  }
+}
+
+resource "aws_api_gateway_method_response" "out_of_stock_options_200" {
+  rest_api_id = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id = aws_api_gateway_resource.out_of_stock.id
+  http_method = aws_api_gateway_method.out_of_stock_options.http_method
+  status_code = "200"
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Origin"  = true
+  }
+}
+
+resource "aws_api_gateway_integration_response" "out_of_stock_options_200" {
+  rest_api_id = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id = aws_api_gateway_resource.out_of_stock.id
+  http_method = aws_api_gateway_method.out_of_stock_options.http_method
+  status_code = aws_api_gateway_method_response.out_of_stock_options_200.status_code
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+    "method.response.header.Access-Control-Allow-Methods" = "'GET,POST,PUT,DELETE,OPTIONS'"
+    "method.response.header.Access-Control-Allow-Origin"  = "'${local.cors_allow_origin}'"
+  }
+
+  depends_on = [
+    aws_api_gateway_integration.out_of_stock_options,
+    aws_api_gateway_method_response.out_of_stock_options_200,
+  ]
+}
+
+resource "aws_api_gateway_method" "top_products_options" {
+  rest_api_id   = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id   = aws_api_gateway_resource.top_products.id
+  http_method   = "OPTIONS"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "top_products_options" {
+  rest_api_id             = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id             = aws_api_gateway_resource.top_products.id
+  http_method             = aws_api_gateway_method.top_products_options.http_method
+  integration_http_method = "OPTIONS"
+  type                    = "MOCK"
+  request_templates = {
+    "application/json" = "{\"statusCode\": 200}"
+  }
+}
+
+resource "aws_api_gateway_method_response" "top_products_options_200" {
+  rest_api_id = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id = aws_api_gateway_resource.top_products.id
+  http_method = aws_api_gateway_method.top_products_options.http_method
+  status_code = "200"
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Origin"  = true
+  }
+}
+
+resource "aws_api_gateway_integration_response" "top_products_options_200" {
+  rest_api_id = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id = aws_api_gateway_resource.top_products.id
+  http_method = aws_api_gateway_method.top_products_options.http_method
+  status_code = aws_api_gateway_method_response.top_products_options_200.status_code
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+    "method.response.header.Access-Control-Allow-Methods" = "'GET,POST,PUT,DELETE,OPTIONS'"
+    "method.response.header.Access-Control-Allow-Origin"  = "'${local.cors_allow_origin}'"
+  }
+
+  depends_on = [
+    aws_api_gateway_integration.top_products_options,
+    aws_api_gateway_method_response.top_products_options_200,
+  ]
+}
+
+resource "aws_api_gateway_method" "top_customers_options" {
+  rest_api_id   = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id   = aws_api_gateway_resource.top_customers.id
+  http_method   = "OPTIONS"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "top_customers_options" {
+  rest_api_id             = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id             = aws_api_gateway_resource.top_customers.id
+  http_method             = aws_api_gateway_method.top_customers_options.http_method
+  integration_http_method = "OPTIONS"
+  type                    = "MOCK"
+  request_templates = {
+    "application/json" = "{\"statusCode\": 200}"
+  }
+}
+
+resource "aws_api_gateway_method_response" "top_customers_options_200" {
+  rest_api_id = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id = aws_api_gateway_resource.top_customers.id
+  http_method = aws_api_gateway_method.top_customers_options.http_method
+  status_code = "200"
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Origin"  = true
+  }
+}
+
+resource "aws_api_gateway_integration_response" "top_customers_options_200" {
+  rest_api_id = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id = aws_api_gateway_resource.top_customers.id
+  http_method = aws_api_gateway_method.top_customers_options.http_method
+  status_code = aws_api_gateway_method_response.top_customers_options_200.status_code
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+    "method.response.header.Access-Control-Allow-Methods" = "'GET,POST,PUT,DELETE,OPTIONS'"
+    "method.response.header.Access-Control-Allow-Origin"  = "'${local.cors_allow_origin}'"
+  }
+
+  depends_on = [
+    aws_api_gateway_integration.top_customers_options,
+    aws_api_gateway_method_response.top_customers_options_200,
+  ]
+}
+
+resource "aws_api_gateway_method" "sales_by_store_options" {
+  rest_api_id   = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id   = aws_api_gateway_resource.sales_by_store.id
+  http_method   = "OPTIONS"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "sales_by_store_options" {
+  rest_api_id             = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id             = aws_api_gateway_resource.sales_by_store.id
+  http_method             = aws_api_gateway_method.sales_by_store_options.http_method
+  integration_http_method = "OPTIONS"
+  type                    = "MOCK"
+  request_templates = {
+    "application/json" = "{\"statusCode\": 200}"
+  }
+}
+
+resource "aws_api_gateway_method_response" "sales_by_store_options_200" {
+  rest_api_id = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id = aws_api_gateway_resource.sales_by_store.id
+  http_method = aws_api_gateway_method.sales_by_store_options.http_method
+  status_code = "200"
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Origin"  = true
+  }
+}
+
+resource "aws_api_gateway_integration_response" "sales_by_store_options_200" {
+  rest_api_id = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id = aws_api_gateway_resource.sales_by_store.id
+  http_method = aws_api_gateway_method.sales_by_store_options.http_method
+  status_code = aws_api_gateway_method_response.sales_by_store_options_200.status_code
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+    "method.response.header.Access-Control-Allow-Methods" = "'GET,POST,PUT,DELETE,OPTIONS'"
+    "method.response.header.Access-Control-Allow-Origin"  = "'${local.cors_allow_origin}'"
+  }
+
+  depends_on = [
+    aws_api_gateway_integration.sales_by_store_options,
+    aws_api_gateway_method_response.sales_by_store_options_200,
+  ]
+}
+
+# ==========================================
+# OPTIONS - AUDIT
+# ==========================================
+
+resource "aws_api_gateway_method" "audit_options" {
+  rest_api_id   = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id   = aws_api_gateway_resource.audit.id
+  http_method   = "OPTIONS"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "audit_options" {
+  rest_api_id             = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id             = aws_api_gateway_resource.audit.id
+  http_method             = aws_api_gateway_method.audit_options.http_method
+  integration_http_method = "OPTIONS"
+  type                    = "MOCK"
+  request_templates = {
+    "application/json" = "{\"statusCode\": 200}"
+  }
+}
+
+resource "aws_api_gateway_method_response" "audit_options_200" {
+  rest_api_id = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id = aws_api_gateway_resource.audit.id
+  http_method = aws_api_gateway_method.audit_options.http_method
+  status_code = "200"
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Origin"  = true
+  }
+}
+
+resource "aws_api_gateway_integration_response" "audit_options_200" {
+  rest_api_id = aws_api_gateway_rest_api.cloudshop_api.id
+  resource_id = aws_api_gateway_resource.audit.id
+  http_method = aws_api_gateway_method.audit_options.http_method
+  status_code = aws_api_gateway_method_response.audit_options_200.status_code
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+    "method.response.header.Access-Control-Allow-Methods" = "'GET,POST,PUT,DELETE,OPTIONS'"
+    "method.response.header.Access-Control-Allow-Origin"  = "'${local.cors_allow_origin}'"
+  }
+
+  depends_on = [
+    aws_api_gateway_integration.audit_options,
+    aws_api_gateway_method_response.audit_options_200,
+  ]
+}
+
+

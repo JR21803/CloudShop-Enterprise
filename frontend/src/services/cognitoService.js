@@ -87,7 +87,7 @@ export const cognitoService = {
       UserAttributes: [
         { Name: "email", Value: email },
         { Name: "name", Value: name },
-        { Name: "custom:role", Value: role } // asumiendo atributo custom
+        { Name: "custom:role", Value: role }
       ]
     });
   },
@@ -184,18 +184,23 @@ export const cognitoService = {
       CloudShopClientes: "Cliente",
     };
 
-    let userRole = payloadDecoded["custom:role"] || payloadDecoded.role;
-    if (!userRole) {
-      const groups = payloadDecoded["cognito:groups"] || payloadDecoded.groups || [];
-      if (Array.isArray(groups)) {
-        for (const groupName of groups) {
-          if (ROLE_BY_GROUP[groupName]) {
-            userRole = ROLE_BY_GROUP[groupName];
-            break;
-          }
+    let userRole = null;
+    const groups = payloadDecoded["cognito:groups"] || payloadDecoded.groups || [];
+    if (Array.isArray(groups)) {
+      for (const groupName of groups) {
+        if (ROLE_BY_GROUP[groupName]) {
+          userRole = ROLE_BY_GROUP[groupName];
+          break;
         }
-      } else if (typeof groups === "string") {
-        userRole = ROLE_BY_GROUP[groups];
+      }
+    } else if (typeof groups === "string") {
+      userRole = ROLE_BY_GROUP[groups];
+    }
+
+    if (!userRole) {
+      const directRole = payloadDecoded.role;
+      if (typeof directRole === "string" && directRole.trim()) {
+        userRole = directRole;
       }
     }
 

@@ -1,9 +1,11 @@
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
-const {DynamoDBDocumentClient, GetCommand, UpdateCommand } = require("@aws-sdk/lib-dynamodb");
-const { getRole, hasRole } = require("../../roleAuth");
+const { DynamoDBDocumentClient, GetCommand, UpdateCommand } = require("@aws-sdk/lib-dynamodb");
+const { getRole, hasRole } = require('roleAuth');
+const { EventBridgeClient, PutEventsCommand } = require("@aws-sdk/client-eventbridge");
 
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
+const eventBridgeClient = new EventBridgeClient({});
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -66,6 +68,22 @@ exports.handler = async (event) => {
             ExpressionAttributeValues: { ":deleted": "DELETED" }
         })
     );
+
+    try {
+        await eventBridgeClient.send(new PutEventsCommand({
+            Entries: [{
+                Source: "cloudshop.products",
+                DetailType: "product.deleted",
+                Detail: JSON.stringify({
+                    userId: ownerId,
+                    productId: productId
+                }),
+                EventBusName: process.env.EVENT_BUS_NAME
+            }]
+        }));
+    } catch (eventError) {
+        console.error("Error publicando evento de auditoría (no crítico):", eventError);
+    }
 
     return {
         statusCode: 200,

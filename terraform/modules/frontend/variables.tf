@@ -13,3 +13,9 @@ variable "aws_region" {
   type        = string
   description = "Región de AWS"
 }
+
+variable "bucket_name" {
+  type        = string
+  description = "Nombre explícito del bucket S3. Si se deja vacío, se genera uno único con sufijo aleatorio."
+  default     = ""
+}

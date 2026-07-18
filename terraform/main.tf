@@ -1,3 +1,10 @@
+locals {
+  event_bus_name = "cloudshop-events"
+}
+
+data "aws_caller_identity" "current" {}
+
+
 module "iam" {
   source = "./modules/iam"
 
@@ -10,10 +17,12 @@ module "iam" {
   audit_table          = module.dynamodb.audit_table
   eventbridge_bus_name = "cloudshop-events"
   ses_from_email       = var.ses_from_email
+  
 }
 
 module "cognito" {
   source = "./modules/cognito"
+  post_confirmation_lambda_arn = module.lambda.post_confirmation_arn
 }
 
 module "dynamodb" {
@@ -30,6 +39,8 @@ module "lambda" {
   cart_table      = module.dynamodb.cart_table
   orders_table    = module.dynamodb.orders_table
   audit_table     = module.dynamodb.audit_table
+  cognito_user_pool_arn = module.cognito.user_pool_arn
+  eventbridge_bus_name   = "cloudshop-events"
 }
 
 module "apigateway" {
@@ -141,6 +152,7 @@ module "apigateway" {
 module "eventbridge" {
   source = "./modules/eventbridge"
 
+  event_bus_name                    = local.event_bus_name
   process_audit_event_arn           = module.lambda.process_audit_event_arn
   process_audit_event_function_name = module.lambda.process_audit_event_function_name
   send_email_arn                    = module.lambda.send_email_arn
@@ -176,4 +188,13 @@ module "frontend" {
   project_name = var.project_name
   environment  = var.environment
   aws_region   = var.aws_region
+  bucket_name  = var.bucket_name
+}
+
+resource "aws_lambda_permission" "allow_cognito_post_confirmation" {
+  statement_id  = "AllowCognitoInvokePostConfirmation"
+  action        = "lambda:InvokeFunction"
+  function_name = module.lambda.post_confirmation_function_name
+  principal     = "cognito-idp.amazonaws.com"
+  source_arn    = module.cognito.user_pool_arn
 }

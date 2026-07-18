@@ -1,6 +1,10 @@
+resource "random_id" "bucket_suffix" {
+  byte_length = 4
+}
+
 # S3 Bucket para los archivos estáticos del frontend
 resource "aws_s3_bucket" "frontend" {
-  bucket        = "${var.project_name}-frontend-${var.environment}"
+  bucket        = var.bucket_name != "" ? var.bucket_name : "${var.project_name}-frontend-${var.environment}-${random_id.bucket_suffix.hex}"
   force_destroy = true
 
   tags = {

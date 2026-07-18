@@ -36,3 +36,13 @@ variable "audit_table" {
   type    = string
   default = "Audit"
 }
+
+variable "cognito_user_pool_arn" {
+  type = string
+}
+
+variable "eventbridge_bus_name" {
+  description = "Name of the CloudShop EventBridge bus"
+  type        = string
+  default     = "cloudshop-events"
+}

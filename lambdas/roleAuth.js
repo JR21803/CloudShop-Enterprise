@@ -9,7 +9,7 @@ function getRole(claims = {}) {
     return null;
   }
 
-  const directRole = claims['custom:role'] || claims.role;
+  const directRole = claims.role;
   if (directRole) {
     return directRole;
   }

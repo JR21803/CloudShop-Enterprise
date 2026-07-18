@@ -3,6 +3,27 @@ resource "aws_cognito_user_pool" "users" {
   username_attributes = [
     "email"
   ]
+
+  schema {
+    name                = "role"
+    attribute_data_type = "String"
+    mutable             = true
+    required            = false
+
+    string_attribute_constraints {
+      min_length = 1
+      max_length = 50
+    }
+  }
+  
+  auto_verified_attributes = ["email"]
+
+  verification_message_template {
+    default_email_option = "CONFIRM_WITH_CODE"
+    email_message        = "Tu código de verificación de CloudShop es {####}."
+    email_subject        = "CloudShop - Código de verificación"
+  }
+
   password_policy {
     minimum_length    = 8
     require_lowercase = true
@@ -11,6 +32,11 @@ resource "aws_cognito_user_pool" "users" {
     require_symbols   = true
   }
   mfa_configuration = "OFF"
+
+  lambda_config {
+    post_confirmation = var.post_confirmation_lambda_arn
+  }
+
 }
 
 resource "aws_cognito_user_pool_client" "client" {
@@ -23,6 +49,9 @@ resource "aws_cognito_user_pool_client" "client" {
     "ALLOW_REFRESH_TOKEN_AUTH",
     "ALLOW_USER_SRP_AUTH"
   ]
+
+  write_attributes = ["email", "name", "custom:role"]
+  read_attributes  = ["email", "name", "custom:role"]
 }
 
 resource "aws_cognito_user_group" "admins" {

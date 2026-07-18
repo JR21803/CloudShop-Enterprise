@@ -21,3 +21,4 @@ output "operators_group_name" {
 output "clients_group_name" {
   value = aws_cognito_user_group.clients.name
 }
+

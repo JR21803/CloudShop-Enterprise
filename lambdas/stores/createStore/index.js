@@ -1,7 +1,9 @@
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
 const { DynamoDBDocumentClient, PutCommand } = require("@aws-sdk/lib-dynamodb");
-const { v4: uuidv4 } = require("uuid");
-const { getRole, hasRole } = require("../../roleAuth");
+
+const { getRole, hasRole } = require('roleAuth');
+
+const { randomUUID } = require("crypto");
 
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
@@ -36,7 +38,7 @@ exports.handler = async (event) => {
         }
 
         const store = {
-            storeId: uuidv4(),
+            storeId: randomUUID(),
             name: body.name,
             address: body.address,
             phone: body.phone,

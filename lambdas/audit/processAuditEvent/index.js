@@ -1,6 +1,6 @@
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
 const { DynamoDBDocumentClient, PutCommand } = require("@aws-sdk/lib-dynamodb");
-const { v4: uuidv4 } = require("uuid");
+const { randomUUID } = require("crypto");
 
 const ddbClient = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(ddbClient);
@@ -27,8 +27,8 @@ exports.handler = async (event) => {
     const usuario = detail.userId || detail.userEmail || "sistema";
     const fecha = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
 
-    const auditRecord = {
-      auditId: uuidv4(),
+   const auditRecord = {
+      auditId: randomUUID(),
       usuario,
       accion,
       fecha,
@@ -37,6 +37,9 @@ exports.handler = async (event) => {
         source: event.source,
         detailType,
         orderId: detail.orderId || null,
+        productId: detail.productId || null,
+        productName: detail.name || null,
+        userEmail: detail.userEmail || null,
         total: detail.total || null,
         storeId: detail.storeId || null,
         status: detail.status || null,

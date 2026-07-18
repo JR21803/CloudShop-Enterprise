@@ -22,9 +22,12 @@ resource "aws_lambda_function" "create_user" {
 
   role = var.lambda_role_arn
 
+  layers = [aws_lambda_layer_version.shared_utils.arn]
+
   environment {
     variables = {
       USERS_TABLE = var.users_table
+      EVENT_BUS_NAME = var.eventbridge_bus_name
     }
   }
 }
@@ -83,6 +86,8 @@ resource "aws_lambda_function" "get_users" {
 
   role = var.lambda_role_arn
 
+  layers = [aws_lambda_layer_version.shared_utils.arn]
+
   environment {
     variables = {
       USERS_TABLE = var.users_table
@@ -103,6 +108,8 @@ resource "aws_lambda_function" "get_user_by_id" {
   handler = "index.handler"
 
   role = var.lambda_role_arn
+
+  layers = [aws_lambda_layer_version.shared_utils.arn]
 
   environment {
     variables = {
@@ -125,6 +132,8 @@ resource "aws_lambda_function" "update_user" {
 
   role = var.lambda_role_arn
 
+  layers = [aws_lambda_layer_version.shared_utils.arn]
+
   environment {
     variables = {
       USERS_TABLE = var.users_table
@@ -145,6 +154,8 @@ resource "aws_lambda_function" "deactivate_user" {
   handler = "index.handler"
 
   role = var.lambda_role_arn
+
+  layers = [aws_lambda_layer_version.shared_utils.arn]
 
   environment {
     variables = {
@@ -177,9 +188,12 @@ resource "aws_lambda_function" "create_product" {
 
   role = var.lambda_role_arn
 
+  layers = [aws_lambda_layer_version.shared_utils.arn]
+
   environment {
     variables = {
       PRODUCTS_TABLE = var.products_table
+      EVENT_BUS_NAME = var.eventbridge_bus_name
     }
   }
 }
@@ -238,6 +252,8 @@ resource "aws_lambda_function" "get_products" {
 
   role = var.lambda_role_arn
 
+  layers = [aws_lambda_layer_version.shared_utils.arn]
+
   environment {
     variables = {
       PRODUCTS_TABLE = var.products_table
@@ -258,6 +274,8 @@ resource "aws_lambda_function" "get_product_by_id" {
   handler = "index.handler"
 
   role = var.lambda_role_arn
+
+  layers = [aws_lambda_layer_version.shared_utils.arn]
 
   environment {
     variables = {
@@ -280,6 +298,8 @@ resource "aws_lambda_function" "update_product" {
 
   role = var.lambda_role_arn
 
+  layers = [aws_lambda_layer_version.shared_utils.arn]
+
   environment {
     variables = {
       PRODUCTS_TABLE = var.products_table
@@ -301,9 +321,12 @@ resource "aws_lambda_function" "delete_product" {
 
   role = var.lambda_role_arn
 
+  layers = [aws_lambda_layer_version.shared_utils.arn]
+
   environment {
     variables = {
       PRODUCTS_TABLE = var.products_table
+      EVENT_BUS_NAME = var.eventbridge_bus_name
     }
   }
 }
@@ -332,6 +355,8 @@ resource "aws_lambda_function" "total_sales" {
   handler = "index.handler"
 
   role = var.lambda_role_arn
+
+  layers = [aws_lambda_layer_version.shared_utils.arn]
 
   environment {
     variables = {
@@ -363,6 +388,8 @@ resource "aws_lambda_function" "order_by_status" {
   handler = "index.handler"
 
   role = var.lambda_role_arn
+
+  layers = [aws_lambda_layer_version.shared_utils.arn]
 
   environment {
     variables = {
@@ -396,6 +423,8 @@ resource "aws_lambda_function" "out_of_stock" {
 
   role = var.lambda_role_arn
 
+  layers = [aws_lambda_layer_version.shared_utils.arn]
+
   environment {
     variables = {
       PRODUCTS_TABLE = var.products_table
@@ -427,6 +456,8 @@ resource "aws_lambda_function" "top_products" {
 
   role = var.lambda_role_arn
 
+  layers = [aws_lambda_layer_version.shared_utils.arn]
+
   environment {
     variables = {
       ORDERS_TABLE = var.orders_table
@@ -456,6 +487,8 @@ resource "aws_lambda_function" "top_customers" {
   handler = "index.handler"
 
   role = var.lambda_role_arn
+
+  layers = [aws_lambda_layer_version.shared_utils.arn]
 
   environment {
     variables = {
@@ -488,6 +521,8 @@ resource "aws_lambda_function" "sales_by_store" {
 
   role = var.lambda_role_arn
 
+  layers = [aws_lambda_layer_version.shared_utils.arn]
+
   environment {
     variables = {
       ORDERS_TABLE = var.orders_table
@@ -508,6 +543,13 @@ resource "aws_lambda_function" "create_store" {
   runtime          = "nodejs20.x"
   handler          = "index.handler"
   role             = var.lambda_role_arn
+  layers = [aws_lambda_layer_version.shared_utils.arn]
+
+  environment {
+    variables = {
+      STORES_TABLE = var.stores_table
+    }
+  }
 }
 
 data "archive_file" "get_stores" {
@@ -523,6 +565,13 @@ resource "aws_lambda_function" "get_stores" {
   runtime          = "nodejs20.x"
   handler          = "index.handler"
   role             = var.lambda_role_arn
+  layers = [aws_lambda_layer_version.shared_utils.arn]
+
+  environment {
+    variables = {
+      STORES_TABLE = var.stores_table
+    }
+  }
 }
 
 data "archive_file" "get_store_by_id" {
@@ -538,6 +587,13 @@ resource "aws_lambda_function" "get_store_by_id" {
   runtime          = "nodejs20.x"
   handler          = "index.handler"
   role             = var.lambda_role_arn
+  layers = [aws_lambda_layer_version.shared_utils.arn]
+
+  environment {
+    variables = {
+      STORES_TABLE = var.stores_table
+    }
+  }
 }
 
 data "archive_file" "update_store" {
@@ -553,6 +609,13 @@ resource "aws_lambda_function" "update_store" {
   runtime          = "nodejs20.x"
   handler          = "index.handler"
   role             = var.lambda_role_arn
+  layers = [aws_lambda_layer_version.shared_utils.arn]
+
+  environment {
+    variables = {
+      STORES_TABLE = var.stores_table
+    }
+}
 }
 
 data "archive_file" "deactivate_store" {
@@ -568,7 +631,16 @@ resource "aws_lambda_function" "deactivate_store" {
   runtime          = "nodejs20.x"
   handler          = "index.handler"
   role             = var.lambda_role_arn
+  layers = [aws_lambda_layer_version.shared_utils.arn]
+
+
+  environment {
+    variables = {
+      STORES_TABLE = var.stores_table
+    }
+  }
 }
+
 data "archive_file" "get_cart" {
   type        = "zip"
   source_dir  = "${path.root}/../lambdas/cart/getCart"
@@ -582,6 +654,13 @@ resource "aws_lambda_function" "get_cart" {
   runtime          = "nodejs20.x"
   handler          = "index.handler"
   role             = var.lambda_role_arn
+  layers = [aws_lambda_layer_version.shared_utils.arn]
+
+  environment {
+    variables = {
+      CART_TABLE = var.cart_table
+    }
+  }
 }
 
 data "archive_file" "add_product" {
@@ -597,6 +676,13 @@ resource "aws_lambda_function" "add_product" {
   runtime          = "nodejs20.x"
   handler          = "index.handler"
   role             = var.lambda_role_arn
+  layers = [aws_lambda_layer_version.shared_utils.arn]
+
+  environment {
+    variables = {
+      CART_TABLE = var.cart_table
+    }
+  }
 }
 
 data "archive_file" "update_quantity" {
@@ -612,6 +698,13 @@ resource "aws_lambda_function" "update_quantity" {
   runtime          = "nodejs20.x"
   handler          = "index.handler"
   role             = var.lambda_role_arn
+  layers = [aws_lambda_layer_version.shared_utils.arn]
+
+  environment {
+    variables = {
+      CART_TABLE = var.cart_table
+    }
+  }
 }
 
 data "archive_file" "remove_product" {
@@ -627,6 +720,13 @@ resource "aws_lambda_function" "remove_product" {
   runtime          = "nodejs20.x"
   handler          = "index.handler"
   role             = var.lambda_role_arn
+  layers = [aws_lambda_layer_version.shared_utils.arn]
+
+  environment {
+    variables = {
+      CART_TABLE = var.cart_table
+    }
+  }
 }
 
 data "archive_file" "clear_cart" {
@@ -642,6 +742,12 @@ resource "aws_lambda_function" "clear_cart" {
   runtime          = "nodejs20.x"
   handler          = "index.handler"
   role             = var.lambda_role_arn
+  layers = [aws_lambda_layer_version.shared_utils.arn]
+  environment {
+    variables = {
+      CART_TABLE = var.cart_table
+    }
+  }
 }
 
 # ============================================================
@@ -661,6 +767,9 @@ resource "aws_lambda_function" "create_order" {
   runtime          = "nodejs20.x"
   handler          = "index.handler"
   role             = var.lambda_role_arn
+
+
+  layers = [aws_lambda_layer_version.shared_utils.arn]
   environment {
     variables = {
       EVENT_BUS_NAME = "cloudshop-events"
@@ -683,6 +792,13 @@ resource "aws_lambda_function" "get_orders" {
   runtime          = "nodejs20.x"
   handler          = "index.handler"
   role             = var.lambda_role_arn
+  layers = [aws_lambda_layer_version.shared_utils.arn]
+
+  environment {
+    variables = {
+      ORDERS_TABLE = var.orders_table
+    }
+  }
 }
 
 data "archive_file" "get_order_by_id" {
@@ -698,6 +814,13 @@ resource "aws_lambda_function" "get_order_by_id" {
   runtime          = "nodejs20.x"
   handler          = "index.handler"
   role             = var.lambda_role_arn
+  layers = [aws_lambda_layer_version.shared_utils.arn]
+
+  environment {
+    variables = {
+      ORDERS_TABLE = var.orders_table
+    }
+  }
 }
 
 data "archive_file" "update_order_status" {
@@ -713,6 +836,13 @@ resource "aws_lambda_function" "update_order_status" {
   runtime          = "nodejs20.x"
   handler          = "index.handler"
   role             = var.lambda_role_arn
+  layers = [aws_lambda_layer_version.shared_utils.arn]
+
+  environment {
+    variables = {
+      ORDERS_TABLE = var.orders_table
+    }
+  }
 }
 
 data "archive_file" "cancel_order" {
@@ -728,6 +858,13 @@ resource "aws_lambda_function" "cancel_order" {
   runtime          = "nodejs20.x"
   handler          = "index.handler"
   role             = var.lambda_role_arn
+  layers = [aws_lambda_layer_version.shared_utils.arn]
+
+  environment {
+    variables = {
+      ORDERS_TABLE = var.orders_table
+    }
+  }
 }
 
 # ============================================================
@@ -747,6 +884,13 @@ resource "aws_lambda_function" "get_audit" {
   runtime          = "nodejs20.x"
   handler          = "index.handler"
   role             = var.lambda_role_arn
+  layers = [aws_lambda_layer_version.shared_utils.arn]
+
+  environment {
+    variables = {
+      AUDIT_TABLE = var.audit_table
+    }
+  }
 }
 
 data "archive_file" "process_audit_event" {
@@ -762,6 +906,13 @@ resource "aws_lambda_function" "process_audit_event" {
   runtime          = "nodejs20.x"
   handler          = "index.handler"
   role             = var.lambda_role_arn
+  layers = [aws_lambda_layer_version.shared_utils.arn]
+
+  environment {
+    variables = {
+      AUDIT_TABLE = var.audit_table
+    }
+  }
 }
 
 data "archive_file" "send_email" {
@@ -777,9 +928,82 @@ resource "aws_lambda_function" "send_email" {
   runtime          = "nodejs20.x"
   handler          = "index.handler"
   role             = var.lambda_role_arn
+  layers = [aws_lambda_layer_version.shared_utils.arn]
   environment {
     variables = {
       SES_FROM_EMAIL = var.ses_from_email
     }
   }
+}
+
+
+data "archive_file" "shared_utils_layer" {
+  type        = "zip"
+  output_path = "${path.module}/shared-utils-layer.zip"
+  source {
+    content  = file("${path.module}/../../../lambdas/roleAuth.js")
+    filename = "nodejs/node_modules/roleAuth/index.js"  
+  }
+}
+
+resource "aws_lambda_layer_version" "shared_utils" {
+  filename            = data.archive_file.shared_utils_layer.output_path
+  layer_name          = "shared-utils"
+  compatible_runtimes = ["nodejs20.x"]
+  source_code_hash    = data.archive_file.shared_utils_layer.output_base64sha256
+}
+
+data "archive_file" "post_confirmation" {
+  type        = "zip"
+  source_dir  = "${path.root}/../lambdas/auth/postConfirmation"
+  output_path = "${path.root}/../lambdas/auth/postConfirmation.zip"
+}
+
+resource "aws_lambda_function" "post_confirmation" {
+  function_name    = "postConfirmation"
+  filename         = data.archive_file.post_confirmation.output_path
+  source_code_hash = data.archive_file.post_confirmation.output_base64sha256
+  runtime          = "nodejs20.x"
+  handler          = "index.handler"
+  role             = aws_iam_role.post_confirmation_role.arn  
+}
+
+resource "aws_iam_role" "post_confirmation_role" {
+  name = "post-confirmation-lambda-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Action = "sts:AssumeRole"
+      Effect = "Allow"
+      Principal = {
+        Service = "lambda.amazonaws.com"
+      }
+    }]
+  })
+}
+
+resource "aws_iam_role_policy" "post_confirmation_policy" {
+  name = "post-confirmation-cognito-policy"
+  role = aws_iam_role.post_confirmation_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = ["cognito-idp:AdminAddUserToGroup"]
+        Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents"
+        ]
+        Resource = "arn:aws:logs:*:*:*"
+      }
+    ]
+  })
 }

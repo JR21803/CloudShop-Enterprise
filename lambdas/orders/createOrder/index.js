@@ -1,8 +1,8 @@
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
 const { DynamoDBDocumentClient, GetCommand, PutCommand, UpdateCommand } = require("@aws-sdk/lib-dynamodb");
 const { EventBridgeClient, PutEventsCommand } = require("@aws-sdk/client-eventbridge");
-const { v4: uuidv4 } = require("uuid");
-const { getRole, hasRole } = require("../../roleAuth");
+const { randomUUID } = require("crypto");
+const { getRole, hasRole } = require('roleAuth');
 
 const ddbClient = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(ddbClient);
@@ -43,7 +43,7 @@ exports.handler = async (event) => {
     }
 
     const body = JSON.parse(event.body || "{}");
-    const { items } = body;
+    let { items } = body;
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       return {
@@ -52,6 +52,18 @@ exports.handler = async (event) => {
         body: JSON.stringify({ message: "El pedido debe contener al menos un producto" }),
       };
     }
+
+    const mergedMap = new Map();
+    for (const item of items) {
+      if (!item.productId) continue;
+      const existing = mergedMap.get(item.productId);
+      if (existing) {
+        existing.quantity += Number(item.quantity) || 0;
+      } else {
+        mergedMap.set(item.productId, { productId: item.productId, quantity: Number(item.quantity) || 0 });
+      }
+    }
+    items = Array.from(mergedMap.values());
 
     // Validar stock y recalcular precios desde DynamoDB para evitar manipulación
     let total = 0;
@@ -108,7 +120,7 @@ exports.handler = async (event) => {
     // Determinar la tienda principal del pedido (primer ítem o body)
     const storeId = body.storeId || validatedItems[0]?.storeId || "unknown";
 
-    const orderId = uuidv4();
+    const orderId = randomUUID();
     const now = new Date().toISOString();
 
     const order = {

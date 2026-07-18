@@ -205,3 +205,12 @@ output "process_audit_event_arn" { value = aws_lambda_function.process_audit_eve
 output "process_audit_event_function_name" { value = aws_lambda_function.process_audit_event.function_name }
 output "send_email_arn" { value = aws_lambda_function.send_email.arn }
 output "send_email_function_name" { value = aws_lambda_function.send_email.function_name }
+
+output "post_confirmation_arn" {
+  value = aws_lambda_function.post_confirmation.arn
+}
+
+output "post_confirmation_function_name" {
+  value = aws_lambda_function.post_confirmation.function_name
+}
+
