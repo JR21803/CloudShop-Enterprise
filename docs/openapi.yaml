@@ -1,0 +1,232 @@
+openapi: 3.0.3
+info:
+  title: CloudShop Enterprise API
+  description: API documentation for CloudShop Enterprise, an e-commerce platform.
+  version: 1.0.0
+servers:
+  - url: https://{api-id}.execute-api.{region}.amazonaws.com/dev
+    description: Development Server
+components:
+  securitySchemes:
+    CognitoAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+security:
+  - CognitoAuth: []
+
+paths:
+  /users:
+    get:
+      summary: Get all users
+      responses:
+        '200':
+          description: A list of users
+    post:
+      summary: Create a new user
+      responses:
+        '201':
+          description: User created
+  /users/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      summary: Get user by ID
+      responses:
+        '200':
+          description: User details
+    put:
+      summary: Update a user
+      responses:
+        '200':
+          description: User updated
+    delete:
+      summary: Deactivate or delete user
+      responses:
+        '200':
+          description: User deleted
+          
+  /products:
+    get:
+      summary: Get all products
+      responses:
+        '200':
+          description: A list of products
+    post:
+      summary: Create a new product
+      responses:
+        '201':
+          description: Product created
+  /products/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      summary: Get product by ID
+      responses:
+        '200':
+          description: Product details
+    put:
+      summary: Update a product
+      responses:
+        '200':
+          description: Product updated
+    delete:
+      summary: Delete product
+      responses:
+        '200':
+          description: Product deleted
+
+  /stores:
+    get:
+      summary: Get all stores
+      responses:
+        '200':
+          description: A list of stores
+    post:
+      summary: Create a new store
+      responses:
+        '201':
+          description: Store created
+  /stores/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      summary: Get store by ID
+      responses:
+        '200':
+          description: Store details
+    put:
+      summary: Update a store
+      responses:
+        '200':
+          description: Store updated
+    delete:
+      summary: Delete store
+      responses:
+        '200':
+          description: Store deleted
+
+  /cart:
+    get:
+      summary: Get cart details
+      responses:
+        '200':
+          description: Cart details
+    delete:
+      summary: Clear cart
+      responses:
+        '200':
+          description: Cart cleared
+  /cart/items:
+    post:
+      summary: Add product to cart
+      responses:
+        '200':
+          description: Product added
+  /cart/items/{productId}:
+    parameters:
+      - name: productId
+        in: path
+        required: true
+        schema:
+          type: string
+    put:
+      summary: Update quantity in cart
+      responses:
+        '200':
+          description: Quantity updated
+    delete:
+      summary: Remove product from cart
+      responses:
+        '200':
+          description: Product removed
+
+  /orders:
+    get:
+      summary: Get all orders
+      responses:
+        '200':
+          description: List of orders
+    post:
+      summary: Create a new order
+      responses:
+        '201':
+          description: Order created
+  /orders/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      summary: Get order by ID
+      responses:
+        '200':
+          description: Order details
+    put:
+      summary: Update order status
+      responses:
+        '200':
+          description: Status updated
+    delete:
+      summary: Cancel order
+      responses:
+        '200':
+          description: Order cancelled
+
+  /dashboard/totalSales:
+    get:
+      summary: Get total sales
+      responses:
+        '200':
+          description: Total sales data
+  /dashboard/orderByStatus:
+    get:
+      summary: Get orders by status
+      responses:
+        '200':
+          description: Orders by status data
+  /dashboard/outOfStock:
+    get:
+      summary: Get out of stock products
+      responses:
+        '200':
+          description: Out of stock products data
+  /dashboard/topProducts:
+    get:
+      summary: Get top products
+      responses:
+        '200':
+          description: Top products data
+  /dashboard/topCustomers:
+    get:
+      summary: Get top customers
+      responses:
+        '200':
+          description: Top customers data
+  /dashboard/salesByStore:
+    get:
+      summary: Get sales by store
+      responses:
+        '200':
+          description: Sales by store data
+
+  /audit:
+    get:
+      summary: Get audit logs
+      responses:
+        '200':
+          description: Audit logs
